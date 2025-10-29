@@ -54,6 +54,15 @@ const PricingPage: React.FC = () => {
     return `Billed monthly`;
   };
 
+  const handlePlanSelection = (planId: string) => {
+    const params = new URLSearchParams({
+      plan: planId,
+      billing: billingCycle,
+      currency: currency
+    });
+    window.location.href = `/checkout?${params.toString()}`;
+  };
+
   const pricingPlans: PricingPlan[] = [
     {
       id: 'starter',
@@ -269,7 +278,10 @@ const PricingPage: React.FC = () => {
                   ))}
                 </ul>
                 
-                <button className={`cta-button ${plan.popular ? 'primary' : 'secondary'}`}>
+                <button 
+                  className={`cta-button ${plan.popular ? 'primary' : 'secondary'}`}
+                  onClick={() => handlePlanSelection(plan.id)}
+                >
                   {plan.ctaText}
                 </button>
               </div>
@@ -361,7 +373,12 @@ const PricingPage: React.FC = () => {
         <div className="container">
           <h2>Ready to Improve Your SEO?</h2>
           <p>Join thousands of businesses using our AI-powered SEO audit tool</p>
-          <button className="cta-button primary large">Get Started Now</button>
+          <button 
+            className="cta-button primary large"
+            onClick={() => handlePlanSelection('professional')}
+          >
+            Get Started Now
+          </button>
         </div>
       </section>
 
@@ -604,7 +621,6 @@ const PricingPage: React.FC = () => {
           font-weight: 600;
           cursor: pointer;
           transition: background-color 0.3s ease;
-          
           margin-top: auto;
         }
         
@@ -667,7 +683,7 @@ const PricingPage: React.FC = () => {
         
         .table-row {
           border-bottom: 1px solid #e2e8f0;
-        }.cta-button.large
+        }
         
         .table-row:last-child {
           border-bottom: none;

@@ -70,11 +70,35 @@ export default function Footer() {
   return (
     <footer className="bg-muted border-t border-border py-12 px-4 sm:px-6 lg:px-8">
       <div className="container mx-auto">
-        {/* Top Section */}
-        {/* Changed lg:grid-cols-4 to lg:grid-cols-5 to fit all items */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
-          {/* Logo + About - Increased column span for better balance */}
-          <div className="space-y-4 lg:col-span-1">
+        {/* Subscribe Section - TOP CENTER */}
+        <div className="text-center mb-12">
+          <h3 className="font-semibold text-foreground text-xl mb-4">
+            Stay Updated with SEO Insights
+          </h3>
+          <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
+            Subscribe to our newsletter for the latest SEO tips, tools updates, and industry insights.
+          </p>
+          <form className="flex max-w-md mx-auto" onSubmit={handleSubscribe}>
+            <input
+              type="email"
+              placeholder="Enter your email address"
+              className="w-full px-4 py-3 text-sm border border-border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="px-6 py-3 bg-primary text-white text-sm font-medium rounded-r-lg hover:bg-primary/90 transition-colors"
+            >
+              Subscribe
+            </button>
+          </form>
+        </div>
+
+        {/* Main Footer Content */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+          {/* Logo + About */}
+          <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Link href={"/"}>
                 <Image
@@ -91,31 +115,6 @@ export default function Footer() {
               Professional SEO analysis tools to help businesses improve their
               search engine rankings and online visibility.
             </p>
-          </div>
-
-          {/* Company Links - Removed unnecessary justify-center class */}
-          <div>
-            <h3 className="font-semibold text-foreground text-base mb-3">
-              Company
-            </h3>
-            <ul className="space-y-2">
-              <li>
-                <Link
-                  href="/about-us"
-                  className="text-muted-foreground hover:text-foreground text-sm transition-colors"
-                >
-                  About Us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact-us"
-                  className="text-muted-foreground hover:text-foreground text-sm transition-colors"
-                >
-                  Contact Us
-                </Link>
-              </li>
-            </ul>
           </div>
 
           {/* Services */}
@@ -189,55 +188,116 @@ export default function Footer() {
                   Refund Policy
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/pricing-policy"
+                  className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                >
+                  Pricing Policy
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* Newsletter / CTA */}
+          {/* Get in Touch Section */}
           <div>
             <h3 className="font-semibold text-foreground text-base mb-3">
-              Subscribe
+              Get in Touch
             </h3>
-            <form className="flex max-w-sm" onSubmit={handleSubscribe}>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="w-full px-3 py-2 text-sm border border-border rounded-l-md focus:outline-none"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 bg-primary text-white text-sm rounded-r-md"
-              >
-                Subscribe
-              </button>
-            </form>
-            <div className="mt-4 flex items-center gap-3 p-3">
-              <div className="bg-blue-100 p-2.5 rounded-full flex items-center justify-center">
-                <svg
-                  className="w-5 h-5 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M3 8l7.89 7.89a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
+            <div className="space-y-3">
+              {/* Address */}
+              <div className="flex items-start gap-2">
+                <div className="bg-blue-100 p-2 rounded-full flex items-center justify-center mt-0.5">
+                  <svg
+                    className="w-4 h-4 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Address</p>
+                  <p className="text-sm text-muted-foreground">
+                    Cybomb Technologies LLP,
+                    <br />
+                    Prime Plaza No.54/1, 1st street,
+                    <br />
+                    Sripuram colony, St. Thomas Mount,
+                    <br />
+                    Chennai, Tamil Nadu - 600 016,
+                    <br />
+                    India
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <p className="font-semibold text-foreground text-base">
-                  Contact Support
-                </p>
-                <a
-                  href="mailto:info@rankseo.in" // Corrected the email address
-                  className="text-sm text-blue-600 font-medium hover:text-blue-700 transition-colors no-underline"
-                >
-                  info@rankseo.in
-                </a>
+
+              {/* Phone */}
+              <div className="flex items-center gap-2">
+                <div className="bg-green-100 p-2 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-4 h-4 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Phone</p>
+                  <a
+                    href="tel:+919715092104"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    +91 9715092104
+                  </a>
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="flex items-center gap-2">
+                <div className="bg-purple-100 p-2 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-4 h-4 text-purple-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 8l7.89 7.89a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Email</p>
+                  <a
+                    href="mailto:info@rankseo.in"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    info@rankseo.in
+                  </a>
+                </div>
               </div>
             </div>
           </div>
