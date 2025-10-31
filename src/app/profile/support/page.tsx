@@ -9,6 +9,17 @@ import {
   Search,
   ChevronDown,
 } from "lucide-react";
+import Metatags from "../../../SEO/metatags";
+
+const metaPropsData = {
+  title: "Support Center | SEO Tool Help & Customer Support",
+  description:
+    "Get help with RANK SEO tools, access knowledge base, contact support team, and find answers to frequently asked questions about SEO audits and analysis.",
+  keyword:
+    "SEO tool support, customer help, technical support, FAQ, contact support",
+  url: "https://rankseo.in/profile/support",
+  image: "https://rankseo.in/SEO_LOGO.png",
+};
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -110,7 +121,10 @@ const CardTitle = ({ children, className = "" }: CardTitleProps) => (
   </h3>
 );
 
-const CardDescription = ({ children, className = "" }: CardDescriptionProps) => (
+const CardDescription = ({
+  children,
+  className = "",
+}: CardDescriptionProps) => (
   <p className={`text-sm text-muted-foreground ${className}`}>{children}</p>
 );
 
@@ -289,9 +303,9 @@ const documentationContent = (
             Performance Monitoring & Security
           </strong>
           <p className="text-sm text-muted-foreground">
-            Tracks crucial site speed metrics, Core Web Vitals, and
-            continuously checks for security vulnerabilities like SSL issues
-            that affect search engine trust.
+            Tracks crucial site speed metrics, Core Web Vitals, and continuously
+            checks for security vulnerabilities like SSL issues that affect
+            search engine trust.
           </p>
         </div>
       </li>
@@ -347,9 +361,9 @@ const faqItems: FAQItem[] = [
 const KnowledgeBase = ({ onOpenModal }: KnowledgeBaseProps) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
-  const [expandedItems, setExpandedItems] = useState<{ [key: number]: boolean }>(
-    {}
-  );
+  const [expandedItems, setExpandedItems] = useState<{
+    [key: number]: boolean;
+  }>({});
 
   const categories = ["All", ...new Set(faqItems.map((item) => item.category))];
 
@@ -759,66 +773,69 @@ export default function SupportPage() {
   }, []);
 
   return (
-    <div className="p-6 md:p-10 lg:p-12 space-y-8 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="text-center">
-        <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-          Support Center
-        </h1>
-        <p className="text-lg text-gray-500 dark:text-gray-400 mt-2 max-w-2xl mx-auto">
-          Get immediate help, browse our knowledge base, or contact our
-          dedicated support team. We're here to help you succeed.
-        </p>
-      </div>
-
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column - Contact Form */}
-        <div className="lg:col-span-2 space-y-8">
-          <ContactForm />
-          <KnowledgeBase onOpenModal={handleOpenModal} />
+    <>
+      <Metatags metaProps={metaPropsData} />
+      <div className="p-6 md:p-10 lg:p-12 space-y-8 max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center">
+          <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            Support Center
+          </h1>
+          <p className="text-lg text-gray-500 dark:text-gray-400 mt-2 max-w-2xl mx-auto">
+            Get immediate help, browse our knowledge base, or contact our
+            dedicated support team. We're here to help you succeed.
+          </p>
         </div>
 
-        {/* Right Column - Quick Resources */}
-        <div className="space-y-8">
-          <QuickResources onOpenModal={handleOpenModal} />
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Contact Form */}
+          <div className="lg:col-span-2 space-y-8">
+            <ContactForm />
+            <KnowledgeBase onOpenModal={handleOpenModal} />
+          </div>
 
-          {/* Support Status */}
-          <Card className="hover:shadow-xl transition-shadow duration-300">
-            <CardHeader>
-              <CardTitle className="text-orange-600 dark:text-orange-400">
-                Support Status
-              </CardTitle>
-              <CardDescription>
-                Current system status and response times
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm">System Status</span>
-                <Badge variant="success">All Systems Operational</Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Avg. Response Time</span>
-                <Badge variant="outline">Under 4 hours</Badge>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Support Hours</span>
-                <Badge variant="outline">24/7</Badge>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Right Column - Quick Resources */}
+          <div className="space-y-8">
+            <QuickResources onOpenModal={handleOpenModal} />
+
+            {/* Support Status */}
+            <Card className="hover:shadow-xl transition-shadow duration-300">
+              <CardHeader>
+                <CardTitle className="text-orange-600 dark:text-orange-400">
+                  Support Status
+                </CardTitle>
+                <CardDescription>
+                  Current system status and response times
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">System Status</span>
+                  <Badge variant="success">All Systems Operational</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Avg. Response Time</span>
+                  <Badge variant="outline">Under 4 hours</Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm">Support Hours</span>
+                  <Badge variant="outline">24/7</Badge>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
 
-      {/* Dynamic Content Modal */}
-      <Dialog
-        isOpen={isModalOpen}
-        title={modalTitle}
-        onClose={handleCloseModal}
-      >
-        {modalContent}
-      </Dialog>
-    </div>
+        {/* Dynamic Content Modal */}
+        <Dialog
+          isOpen={isModalOpen}
+          title={modalTitle}
+          onClose={handleCloseModal}
+        >
+          {modalContent}
+        </Dialog>
+      </div>
+    </>
   );
 }
