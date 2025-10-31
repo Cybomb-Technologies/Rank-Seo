@@ -22,6 +22,7 @@ import {
   Cell
 } from 'recharts';
 import { Eye, EyeOff, Download, TrendingUp, AlertCircle, CheckCircle, Clock, BarChart3 } from 'lucide-react';
+import Metatags from "../../SEO/metatags";
 
 export default function AuditPage() {
   const [url, setUrl] = useState("");
@@ -279,7 +280,17 @@ Your actual report will include detailed recommendations tailored to your websit
     </motion.div>
   );
 
+   const metaPropsData = {
+    title: "Free SEO Audit Tool | Website Performance & Accessibility Analysis",
+    description: "Run comprehensive SEO, performance, accessibility, and best practices audits for any website. Get detailed reports with actionable recommendations to improve your rankings.",
+    keyword: "SEO audit, website analysis, performance testing, accessibility check, SEO tools, free audit, website optimization",
+    url: "https://rankseo.in/audit",
+    image: "https://rankseo.in/SEO_LOGO.png",
+  };
+  
   return (
+    <>
+    <Metatags metaProps={metaPropsData} />
     <div className="min-h-screen pt-15 bg-gradient-to-br from-gray-50 to-teal-50">
       {/* HEADER */}
       <div className="bg-gradient-to-r from-gray-900 via-teal-900 to-gray-900 text-white py-16 text-center px-4 relative overflow-hidden">
@@ -886,5 +897,6 @@ Your actual report will include detailed recommendations tailored to your websit
         }
       `}</style>
     </div>
+    </>
   );
 }
