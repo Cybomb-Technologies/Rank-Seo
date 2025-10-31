@@ -1,6 +1,5 @@
 "use client";
-
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -307,7 +306,7 @@ export default function BusinessNameGeneratorPage() {
 
   return (
     <>
-      <Metatags metaProps={metaPropsData} />
+      {/* <Metatags metaProps={metaPropsData} /> */}
       <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-white py-8">
         <GeneratorHeader
           industry={industry}
@@ -371,3 +370,4 @@ export default function BusinessNameGeneratorPage() {
     </>
   );
 }
+export { GeneratorHeader, NameResults };
