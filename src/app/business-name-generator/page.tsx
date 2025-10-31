@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import { GeneratorHeader, NameResults } from "./frontend";
 import { Building2, Zap, Target, Palette } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Metatags from "../../SEO/metatags";
+
 
 interface BusinessName {
   name: string;
@@ -176,7 +175,7 @@ export default function BusinessNameGeneratorPage() {
 
   return (
     <>
-      <Metatags metaProps={metaPropsData} />
+      {/* <Metatags metaProps={metaPropsData} /> */}
       <div className="min-h-screen pt-12 sm:pt-16 bg-gradient-to-br from-background via-color-mix(in oklab, var(--primary) 2%, transparent) to-color-mix(in oklab, var(--secondary) 1%, transparent) relative overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute top-20 left-5% w-40 h-40 bg-color-mix(in oklab, var(--primary) 8%, transparent) rounded-full blur-3xl animate-pulse-slow"></div>
