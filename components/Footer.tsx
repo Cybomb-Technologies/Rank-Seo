@@ -76,7 +76,8 @@ export default function Footer() {
             Stay Updated with SEO Insights
           </h3>
           <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
-            Subscribe to our newsletter for the latest SEO tips, tools updates, and industry insights.
+            Subscribe to our newsletter for the latest SEO tips, tools updates,
+            and industry insights.
           </p>
           <form className="flex max-w-md mx-auto" onSubmit={handleSubscribe}>
             <input
@@ -231,7 +232,7 @@ export default function Footer() {
                 <div>
                   <p className="text-sm font-medium text-foreground">Address</p>
                   <p className="text-sm text-muted-foreground">
-                    Cybomb Technologies LLP,
+                    Cybomb Technologies Pvt Ltd,
                     <br />
                     Prime Plaza No.54/1, 1st street,
                     <br />
