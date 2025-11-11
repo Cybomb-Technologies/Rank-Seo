@@ -68,13 +68,13 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* Canonical URL */}
-        <link rel="canonical" href="https://rankseo.in" />
+        <link rel="canonical" href="https://rankseo.in/" />
 
         {/* Favicon links */}
         <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/icon.png" />
         <link rel="apple-touch-icon" href="/icon.png" />
-        <!-- Google tag (gtag.js) -->
+       
 <Script
     src="https://www.googletagmanager.com/gtag/js?id=G-40JS8B17NN"
     strategy="afterInteractive"
