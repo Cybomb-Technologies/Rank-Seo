@@ -1,3 +1,4 @@
+// controllers/pricingController.js
 const Payment = require("../models/Payment");
 const User = require("../models/User");
 

@@ -11,7 +11,20 @@ const verifyAdmin = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    const admin = await Admin.findById(decoded.id);
+    
+    // Try to find admin by different possible ID paths
+    let adminId = decoded.id || decoded._id || decoded.userId;
+    
+    // If we have a user object in the token, try that too
+    if (!adminId && decoded.user) {
+      adminId = decoded.user.id || decoded.user._id;
+    }
+
+    if (!adminId) {
+      return res.status(401).json({ message: 'Token structure invalid' });
+    }
+
+    const admin = await Admin.findById(adminId);
     
     if (!admin) {
       return res.status(401).json({ message: 'Token is not valid for admin' });

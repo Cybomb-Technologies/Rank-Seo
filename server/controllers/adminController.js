@@ -54,7 +54,7 @@ exports.getDashboardData = async (req, res) => {
   try {
     // Get user data first to populate all logs
     const users = await User.find()
-      .select('-password -otp -otpExpiresAt')
+      .select('-password -otp -otpExpiresAt') // Select all but these
       .sort({ createdAt: -1 })
       .lean();
 
@@ -104,9 +104,24 @@ exports.getDashboardData = async (req, res) => {
 
     // Create a map of user IDs to user data for quick lookup
     const userMap = {};
-    users.forEach(user => {
-      userMap[user._id.toString()] = user;
+    const formattedUsers = users.map(user => {
+        // Add login method for the frontend
+        const loginMethod = user.githubId ? 'GitHub' : user.googleId ? 'Google' : 'Email';
+        const formattedUser = {
+            ...user,
+            _id: user._id.toString(),
+            name: user.name || 'N/A',
+            plan: user.plan || null,
+            planName: user.planName || 'Free',
+            lastLogin: user.lastLogin || user.createdAt || new Date().toISOString(),
+            loginMethod,
+            // Add a random usage for display if needed, but it's not from DB
+            usage: Math.floor(Math.random() * 100), 
+        };
+        userMap[formattedUser._id] = formattedUser;
+        return formattedUser;
     });
+
 
     // Helper function to extract user info from populated data
     const getUserInfo = (item, userField = 'user') => {
@@ -264,24 +279,9 @@ exports.getDashboardData = async (req, res) => {
     ).size;
 
     // Count premium users
-    const premiumUsers = users.filter(user => 
-      user.plan === 'premium' || user.plan === 'Premium'
+    const premiumUsers = formattedUsers.filter(user => 
+      user.planName && user.planName !== 'Free'
     ).length;
-
-    // Format user data for the admin panel
-    const formattedUsers = users.map(user => ({
-      _id: user._id.toString(),
-      email: user.email,
-      name: user.name || 'N/A',
-      plan: user.plan || 'Free',
-      lastLogin: user.lastLogin || user.createdAt || new Date().toISOString(),
-      usage: Math.floor(Math.random() * 100),
-      mobile: user.mobile,
-      profilePicture: user.profilePicture,
-      createdAt: user.createdAt,
-      isVerified: user.isVerified,
-      loginMethod: user.githubId ? 'GitHub' : user.googleId ? 'Google' : 'Email'
-    }));
 
     return res.json({
       // Overall statistics
@@ -308,7 +308,7 @@ exports.getDashboardData = async (req, res) => {
       allToolData, // Combined data for unified view
       
       // User data
-      users: formattedUsers
+      users: formattedUsers // Return fully formed user data
     });
   } catch (err) {
     console.error("Error fetching dashboard data:", err);
@@ -320,22 +320,19 @@ exports.getDashboardData = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find()
-      .select('-password -otp -otpExpiresAt')
+      .select('-password -otp -otpExpiresAt') // Select all but these
       .sort({ createdAt: -1 })
       .lean();
 
     const formattedUsers = users.map(user => ({
+      ...user,
       _id: user._id.toString(),
-      email: user.email,
       name: user.name || 'N/A',
-      plan: user.plan || 'Free',
-      lastLogin: user.lastLogin || user.createdAt,
+      plan: user.plan || null,
+      planName: user.planName || 'Free',
+      lastLogin: user.lastLogin || user.createdAt || new Date().toISOString(),
+      loginMethod: user.githubId ? 'GitHub' : user.googleId ? 'Google' : 'Email',
       usage: Math.floor(Math.random() * 100),
-      mobile: user.mobile,
-      profilePicture: user.profilePicture,
-      createdAt: user.createdAt,
-      isVerified: user.isVerified,
-      loginMethod: user.githubId ? 'GitHub' : user.googleId ? 'Google' : 'Email'
     }));
 
     return res.json({ users: formattedUsers });

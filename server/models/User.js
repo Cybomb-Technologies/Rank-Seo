@@ -43,11 +43,7 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         required: false,
     },
-    plan: {
-        type: String,
-        default: 'Free',
-        enum: ['Free', 'Basic', 'Premium']
-    },
+    
     lastLogin: {
         type: Date,
         default: Date.now
@@ -55,7 +51,38 @@ const UserSchema = new mongoose.Schema({
     isVerified: {
         type: Boolean,
         default: false
-    }
+    },
+     plan: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "PricingPlan",
+    default: null
+  },
+  planName: {
+    type: String,
+    default: "Free"
+  },
+  billingCycle: {
+    type: String,
+    enum: ["monthly", "annual", null],
+    default: null
+  },
+  subscriptionStatus: {
+    type: String,
+    enum: ["active", "inactive", "cancelled", "expired"],
+    default: "inactive"
+  },
+  planExpiry: {
+    type: Date,
+    default: null
+  },
+  maxAuditsPerMonth: {
+    type: Number,
+    default: 1 // Free tier limit
+  },
+  maxTrackedKeywords: {
+    type: Number,
+    default: 10 // Free tier limit
+  }
 }, {
     timestamps: true // This adds createdAt and updatedAt fields
 });

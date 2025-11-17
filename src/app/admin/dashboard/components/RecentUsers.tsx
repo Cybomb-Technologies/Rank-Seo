@@ -26,7 +26,7 @@ export default function RecentUsers({ users }: RecentUsersProps) {
                   />
                 ) : (
                   <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
-                    {user.name.charAt(0)}
+                    {user.name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
                   </div>
                 )}
                 <div className="ml-4">
@@ -42,14 +42,12 @@ export default function RecentUsers({ users }: RecentUsersProps) {
               <div className="text-right">
                 <span
                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                    user.plan === "Premium"
+                    (user.planName && user.planName !== "Free") // Check if plan is not Free
                       ? "bg-purple-100 text-purple-800"
-                      : user.plan === "Basic"
-                      ? "bg-blue-100 text-blue-800"
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  {user.plan}
+                  {user.planName || "Free"} {/* Use planName for display */}
                 </span>
                 <p className="text-sm text-gray-500">
                   Joined: {new Date(user.createdAt).toLocaleDateString()}

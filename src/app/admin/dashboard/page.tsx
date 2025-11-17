@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import OverviewTab from "./components/tabs/OverviewTab";
 import UsersTab from "./components/tabs/UsersTab";
 import AuditTab from "./components/tabs/AuditTab";
+import PricingTab from "./components/tabs/PricingTab";
 import LoadingSpinner from "./components/LoadingSpinner";
 import { DashboardData } from "./types";
 
@@ -96,6 +97,7 @@ export default function AdminDashboard() {
           {activeTab === "overview" && data && <OverviewTab data={data} />}
           {activeTab === "users" && data && <UsersTab data={data} />}
           {activeTab === "audit" && data && <AuditTab data={data} />}
+          {activeTab === "pricing" && data && <PricingTab data={data} />}
         </div>
       </div>
     </div>
