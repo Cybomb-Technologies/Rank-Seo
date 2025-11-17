@@ -1,4 +1,5 @@
-import { User } from "../types";
+"use client";
+import { User } from "../../types";
 
 interface UserTableProps {
   users: User[];
@@ -7,159 +8,141 @@ interface UserTableProps {
 }
 
 export default function UserTable({ users, totalUsers, onViewUser }: UserTableProps) {
-  // Safe handling to prevent undefined errors
-  const safeUsers = users || [];
-  const safeTotalUsers = totalUsers || 0;
+  if (users.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow p-8 text-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-12 w-12 mx-auto text-gray-400 mb-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+          />
+        </svg>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
+        <p className="text-gray-500">Try adjusting your search criteria</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-        <h3 className="text-lg font-medium text-gray-800">
-          All Users ({safeUsers.length})
-        </h3>
-        <span className="text-sm text-gray-500">
-          Total: {safeTotalUsers} users
-        </span>
+    <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-800">
+          Users ({users.length} of {totalUsers})
+        </h2>
       </div>
+      
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 User
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Plan
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Plan & Status
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Login Method
               </th>
-              {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Usage
-              </th> */}
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Last Login
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Joined
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {safeUsers.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                  No users found matching your criteria.
-                </td>
-              </tr>
-            ) : ( 
-              safeUsers.map((user) => (
-                <tr key={user._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
+            {users.map((user) => (
+              <tr key={user._id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10">
                       {user.profilePicture ? (
                         <img
+                          className="h-10 w-10 rounded-full"
                           src={user.profilePicture}
                           alt={user.name}
-                          className="h-10 w-10 rounded-full"
                         />
                       ) : (
-                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-medium">
-                          {user.name?.charAt(0) || 'U'}
+                        <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                          <span className="text-gray-600 font-medium text-sm">
+                            {user.name?.charAt(0)?.toUpperCase() || user.email?.charAt(0)?.toUpperCase()}
+                          </span>
                         </div>
                       )}
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {user.name || 'Unknown User'}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {user.email || 'No email'}
-                        </div>
-                        {user.mobile && (
-                          <div className="text-xs text-gray-400">
-                            {user.mobile}
-                          </div>
-                        )}
-                      </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.plan === "Premium"
-                          ? "bg-purple-100 text-purple-800"
-                          : user.plan === "Basic"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      {user.plan || 'Free'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.isVerified
-                          ? "bg-green-100 text-green-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {user.isVerified ? "Verified" : "Pending"}
-                    </span>
-                  </td>
-                  {/* <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-20 bg-gray-200 rounded-full h-2.5 mr-2">
-                        <div
-                          className={`h-2.5 rounded-full ${
-                            (user.usage || 0) > 80
-                              ? "bg-red-600"
-                              : (user.usage || 0) > 50
-                              ? "bg-yellow-500"
-                              : "bg-green-600"
-                          }`}
-                          style={{ width: `${user.usage || 0}%` }}
-                        ></div>
+                    <div className="ml-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {user.name || "No Name"}
                       </div>
-                      <span className="text-xs text-gray-500">
-                        {user.usage || 0}%
-                      </span>
+                      <div className="text-sm text-gray-500">{user.email}</div>
+                      {user.mobile && (
+                        <div className="text-xs text-gray-400">{user.mobile}</div>
+                      )}
                     </div>
-                  </td> */}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.lastLogin ? (
-                      <>
-                        <div>{new Date(user.lastLogin).toLocaleDateString()}</div>
-                        <div className="text-xs text-gray-400">
-                          {new Date(user.lastLogin).toLocaleTimeString()}
-                        </div>
-                      </>
-                    ) : (
-                      <span className="text-gray-400">Never</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {/* Optimized View Button */}
-                    <button 
-                      onClick={() => onViewUser(user)}
-                      className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 transition-all duration-200"
-                      title="View user profile"
-                    >
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-3.5 w-3.5 mr-1.5" 
-                        viewBox="0 0 20 20" 
-                        fill="currentColor"
-                      >
-                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                        <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                      </svg>
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex flex-col gap-1">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      (user as any).displayPlan === "Free" 
+                        ? "bg-gray-100 text-gray-800" 
+                        : "bg-purple-100 text-purple-800"
+                    }`}>
+                      {(user as any).displayPlan || "Free"}
+                    </span>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      (user as any).statusColor
+                    }`}>
+                      {(user.subscriptionStatus || "inactive").charAt(0).toUpperCase() + 
+                       (user.subscriptionStatus || "inactive").slice(1)}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      user.loginMethod === "GitHub" 
+                        ? "bg-gray-100 text-gray-800"
+                        : user.loginMethod === "Google"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-blue-100 text-blue-800"
+                    }`}>
+                      {user.loginMethod || "Email"}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {(user as any).formattedLastLogin}
+                  {!user.lastLogin && (
+                    <div className="text-xs text-gray-400">Never logged in</div>
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {(user as any).formattedCreatedAt}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button
+                    onClick={() => onViewUser(user)}
+                    className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-md text-sm transition-colors"
+                  >
+                    View Details
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

@@ -1,0 +1,19 @@
+[
+  {
+    "id": "plan-1763372187887-msikp4ebf",
+    "name": "starter",
+    "description": "Perfect for small businesses and bloggers",
+    "monthlyUSD": 19,
+    "annualUSD": 15,
+    "maxAuditsPerMonth": 5,
+    "maxTrackedKeywords": 50,
+    "highlight": false,
+    "custom": false,
+    "features": [
+      {
+        "id": "new-feat-1763372096857-vq8pl5izh",
+        "text": "5 SEO audits per month, Basic technical SEO analysis, Keyword suggestions (up to 50), Email support PDF report export"
+      }
+    ]
+  }
+]

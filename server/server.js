@@ -12,6 +12,9 @@ const contactRoutes = require("./routes/contactRoutes.js");
 const keyRoutes = require("./routes/keyRoutes");
 const businessNameRoutes = require('./routes/businessNames');
 const keywordRoutes = require('./routes/keywordRoutes');
+const paymentRoutes = require("./routes/paymentRoutes"); // Import payment routes
+const adminPricingRoutes = require("./routes/adminPricingRoutes");
+const publicPricingRoutes = require("./routes/publicPricingRoutes");
 require("dotenv").config({ path: path.resolve(__dirname, "../.env.local") });
 
 console.log("JWT_SECRET loaded:", process.env.JWT_SECRET);
@@ -25,7 +28,7 @@ app.use(express.json());
 // CORS - allow frontend to send credentials
 app.use(
   cors({
-    origin: ["http://localhost:3001", "https://rankseo.in"],
+    origin: ["http://localhost:3000", "http://localhost:3001", "https://rankseo.in"], // Added localhost:3000
     credentials: true,
   })
 );
@@ -44,6 +47,10 @@ app.get("/", (req, res) => {
 });
 
 // Routes
+app.use("/api/admin", adminPricingRoutes);
+
+// Public routes (for frontend pricing page)
+app.use("/api/pricing", publicPricingRoutes);
 app.use("/api", authRoutes);
 app.use("/api", auditRoutes);
 app.use("/api", adminRoutes);
@@ -54,7 +61,7 @@ app.use("/api", contactRoutes);
 app.use("/api", keyRoutes);
 app.use('/api/business', businessNameRoutes);
 app.use('/api/keywords', keywordRoutes);
-
+app.use("/api/payments", paymentRoutes); // ✅ Fixed: changed from "/api/payment" to "/api/payments"
 
 app.listen(PORT, () =>
   console.log(`🚀 Server running on http://localhost:${PORT}`)

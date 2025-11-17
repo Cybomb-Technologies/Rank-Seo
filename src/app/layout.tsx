@@ -74,6 +74,7 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/icon.png" />
         <link rel="apple-touch-icon" href="/icon.png" />
+<script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
        
 <Script
     src="https://www.googletagmanager.com/gtag/js?id=G-40JS8B17NN"

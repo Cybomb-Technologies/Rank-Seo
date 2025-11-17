@@ -58,6 +58,21 @@ export default function Sidebar({ activeTab, onTabChange, onLogout }: SidebarPro
               Audit Logs
             </button>
           </li>
+          <li>
+            <button
+              onClick={() => onTabChange("pricing")}
+              className={`w-full text-left px-4 py-3 rounded-md transition-colors flex items-center ${
+                activeTab === "pricing" 
+                  ? "bg-blue-700 text-white" 
+                  : "hover:bg-gray-700 text-gray-300"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 2a1 1 0 00-1 1v1h2V3a1 1 0 00-1-1zm4 1a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 110 2h1a1 1 0 110 2h-1v1a1 1 0 110 2h1a1 1 0 110 2h-1v1a1 1 0 110 2h1a1 1 0 110 2h-1v1a1 1 0 01-1 1H6a1 1 0 01-1-1v-1h-1a1 1 0 110-2h1v-1a1 1 0 110-2h-1a1 1 0 110-2h1v-1a1 1 0 110-2h-1a1 1 0 110-2h1V4a1 1 0 011-1h4zM8 8a1 1 0 000 2h4a1 1 0 000-2H8zm0 4a1 1 0 000 2h4a1 1 0 000-2H8z" clipRule="evenodd" />
+              </svg>
+              Pricing
+            </button>
+          </li>
         </ul>
       </nav>
       <div className="p-4 border-t border-gray-700">
