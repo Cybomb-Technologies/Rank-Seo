@@ -1,3 +1,4 @@
+// page.tsx (Frontend)
 "use client";
 
 import {
@@ -285,9 +286,17 @@ export default function BillingPage() {
     try {
       setDownloadingId(transactionId);
       const token = localStorage.getItem("token");
-      if (!token) return;
+      
+      if (!token) {
+        alert("Authentication failed. Please log in again.");
+        return;
+      }
+      
+      // ✅ FIX: Construct the full URL explicitly for debugging and reliability
+      const downloadUrl = `${API_BASE}/api/payments/invoice/${transactionId}`;
+      console.log("Attempting to download invoice from:", downloadUrl);
 
-      const response = await fetch(`${API_BASE}/api/payments/invoice/${transactionId}`, {
+      const response = await fetch(downloadUrl, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -303,13 +312,16 @@ export default function BillingPage() {
         a.click();
         a.remove();
         window.URL.revokeObjectURL(url);
+        console.log("Invoice downloaded successfully.");
       } else {
-        console.error("Failed to download invoice:", response.statusText);
-        alert("Failed to download invoice. Please try again.");
+        // Log the status and text for better debugging
+        const errorText = await response.text();
+        console.error(`Failed to download invoice: Status ${response.status}`, errorText);
+        alert(`Failed to download invoice. Server responded with: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
       console.error("Error downloading invoice:", error);
-      alert("Error downloading invoice. Please try again.");
+      alert("Error downloading invoice. A network error occurred.");
     } finally {
       setDownloadingId(null);
     }

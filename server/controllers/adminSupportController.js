@@ -336,7 +336,7 @@ exports.sendReply = async (req, res) => {
         <div class="reply-content">${replyMessage.replace(/\n/g, '<br>')}</div>
         
         <div class="signature">
-          <p>Best regards,<br>Support Team</p>
+          <p>Best regards,<br>Rank SEO Support Team</p>
         </div>
         
         <div class="footer">
@@ -359,7 +359,7 @@ exports.sendReply = async (req, res) => {
         console.log('✅ SMTP connection verified');
 
         const mailOptions = {
-          from: process.env.SMTP_FROM || `Support Team <${process.env.SMTP_USER}>`,
+          from: process.env.SMTP_FROM || `Rank SEO Support Team <${process.env.SMTP_USER}>`,
           to: receiverEmail,
           subject: emailSubject,
           text: emailText,
