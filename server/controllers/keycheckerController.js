@@ -1,7 +1,9 @@
+// controllers/keycheckerController.js
 const { chromium } = require("playwright");
 const { URL } = require("url");
 const axios = require("axios");
 const KeycheckReport = require("../models/keycheckReport");
+const UsageTracker = require('../utils/usageTracker');
 
 const MAX_DEPTH = 3;
 const MAX_PAGES = 500;
@@ -23,8 +25,6 @@ async function processCrawlQueue(startUrl, page) {
       continue;
     }
     visitedUrls.add(currentUrl);
-
-    // console.log(`[Depth ${depth}, Page ${visitedUrls.size}/${MAX_PAGES}] Scraping: ${currentUrl}`);
 
     try {
       await page.goto(currentUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
@@ -136,9 +136,7 @@ async function sendToN8nAndWait(scrapedData) {
       data: scrapedData,
     };
 
-    // console.log("Sending data to n8n...");
     const response = await axios.post(n8nWebhookUrl, payload, { timeout: 220000 });
-   // console.log("Raw n8n response received.");
 
     let parsedData;
     if (response.data && typeof response.data === 'object' && response.data.output) {
@@ -155,8 +153,6 @@ async function sendToN8nAndWait(scrapedData) {
       throw new Error("Invalid n8n response format.");
     }
 
-    //console.log("Parsed n8n data structure:", Object.keys(parsedData));
-
     // Normalize keywords for the frontend
     const normalizeKeywords = (arr) => {
       if (!Array.isArray(arr)) return [];
@@ -165,7 +161,6 @@ async function sendToN8nAndWait(scrapedData) {
         .filter(Boolean);
     };
 
-    // FIX: Handle the keyword_intent object structure properly
     const combinedKeywords = [];
     
     // Process all intent categories
@@ -266,12 +261,26 @@ exports.crawlAndScrape = async (req, res) => {
   
   try {
     const startUrl = req.body.url;
-    const userId = req.user.id; // Get user from authenticated request
+    const userId = req.user.id;
 
     if (!userId) {
       return res.status(401).json({ 
         success: false, 
         error: "User authentication required" 
+      });
+    }
+
+    // Check usage limit BEFORE starting the crawl
+    const usageCheck = await UsageTracker.checkUsageLimit(userId, 'keyword-check');
+    if (!usageCheck.allowed) {
+      return res.status(403).json({
+        success: false,
+        error: usageCheck.message,
+        usage: {
+          used: usageCheck.used,
+          limit: usageCheck.limit,
+          remaining: usageCheck.remaining
+        }
       });
     }
 
@@ -287,10 +296,6 @@ exports.crawlAndScrape = async (req, res) => {
     // Generate report ID
     reportId = KeycheckReport.generateReportId();
     
-   // console.log(`Starting crawl for: ${startUrl}`);
-    // console.log(`Report ID: ${reportId}`);
-    // console.log(`User ID: ${userId}`);
-    
     // Create initial report in database with processing status
     await saveReportToDB({
       user: userId,
@@ -301,6 +306,9 @@ exports.crawlAndScrape = async (req, res) => {
       createdAt: new Date(),
       updatedAt: new Date()
     });
+
+    // Increment usage count BEFORE processing
+    await UsageTracker.incrementUsage(userId, 'keyword-check');
 
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({
@@ -360,7 +368,8 @@ exports.crawlAndScrape = async (req, res) => {
       { new: true }
     );
 
-   // console.log(`Report ${reportId} completed and saved to database`);
+    // Get updated usage stats
+    const updatedUsage = await UsageTracker.getUsageStats(userId);
 
     res.status(200).json({
       success: true,
@@ -368,6 +377,7 @@ exports.crawlAndScrape = async (req, res) => {
       mainUrl: startUrl,
       totalScraped: totalScraped,
       reportId: reportId,
+      usage: updatedUsage.keywordChecks,
       analysis: {
         sentToN8n: !n8nData.error,
         dataOptimized: !n8nData.error,
@@ -393,7 +403,6 @@ exports.crawlAndScrape = async (req, res) => {
     res.status(500).json({ success: false, error: "An internal server error occurred during the crawl." });
   } finally {
     if (browser) await browser.close();
-    // console.log("Crawl process finished.");
   }
 };
 

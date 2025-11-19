@@ -109,10 +109,10 @@ export default function UserProfileModal({ user, isOpen, onClose }: UserProfileM
               </div>
             </div>
 
-            {user.mobile && (
+            {user.phone && (
               <div>
                 <label className="block text-sm font-medium text-gray-500">Mobile</label>
-                <p className="mt-1 text-sm text-gray-900">{user.mobile}</p>
+                <p className="mt-1 text-sm text-gray-900">{user.phone}</p>
               </div>
             )}
 

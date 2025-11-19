@@ -68,11 +68,60 @@ export default function Sidebar({ activeTab, onTabChange, onLogout }: SidebarPro
               }`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 2a1 1 0 00-1 1v1h2V3a1 1 0 00-1-1zm4 1a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 110 2h1a1 1 0 110 2h-1v1a1 1 0 110 2h1a1 1 0 110 2h-1v1a1 1 0 110 2h1a1 1 0 110 2h-1v1a1 1 0 01-1 1H6a1 1 0 01-1-1v-1h-1a1 1 0 110-2h1v-1a1 1 0 110-2h-1a1 1 0 110-2h1v-1a1 1 0 110-2h-1a1 1 0 110-2h1V4a1 1 0 011-1h4zM8 8a1 1 0 000 2h4a1 1 0 000-2H8zm0 4a1 1 0 000 2h4a1 1 0 000-2H8z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M10 2a1 1 0 00-1 1v1h2V3a1 1 0 00-1-1zm4 1a1 1 0 011 1v1h1a1 1 0 110 2h-1v1a1 1 0 110 2h1a1 1 0 110 2h-1v1a1 1 0 110 2h1a1 1 0 110 2h-1v1a1 1 0 01-1 1H6a1 1 0 01-1-1v-1h-1a1 1 0 110-2h1v-1a1 1 0 110-2h-1a1 1 0 110-2h1v-1a1 1 0 110-2h-1a1 1 0 110-2h1V4a1 1 0 011-1h4zM8 8a1 1 0 000 2h4a1 1 0 000-2H8zm0 4a1 1 0 000 2h4a1 1 0 000-2H8z" clipRule="evenodd" />
               </svg>
               Pricing
             </button>
           </li>
+          {/* --- New Links Added Below --- */}
+          <li>
+            <button
+              onClick={() => onTabChange("payments")}
+              className={`w-full text-left px-4 py-3 rounded-md transition-colors flex items-center ${
+                activeTab === "payments" 
+                  ? "bg-blue-700 text-white" 
+                  : "hover:bg-gray-700 text-gray-300"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z" />
+                <path fillRule="evenodd" d="M18 9H2v8a2 2 0 002 2h12a2 2 0 002-2V9zM4 14a1 1 0 011-1h6a1 1 0 110 2H5a1 1 0 01-1-1zm.884 1.597a1 1 0 10-1.768.806A3.987 3.987 0 004 18a4 4 0 004-4 1 1 0 10-2 0 2 2 0 01-1.116 1.597zM14 13a1 1 0 100 2h2a1 1 0 100-2h-2z" clipRule="evenodd" />
+              </svg>
+              Payments
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => onTabChange("newsletter")}
+              className={`w-full text-left px-4 py-3 rounded-md transition-colors flex items-center ${
+                activeTab === "newsletter" 
+                  ? "bg-blue-700 text-white" 
+                  : "hover:bg-gray-700 text-gray-300"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+              Newsletter Subscription
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => onTabChange("support")}
+              className={`w-full text-left px-4 py-3 rounded-md transition-colors flex items-center ${
+                activeTab === "support" 
+                  ? "bg-blue-700 text-white" 
+                  : "hover:bg-gray-700 text-gray-300"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-4a1 1 0 00-1 1v3a1 1 0 002 0V7a1 1 0 00-1-1zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+              </svg>
+              Support Messages
+            </button>
+          </li>
+          {/* --- New Links Added Above --- */}
         </ul>
       </nav>
       <div className="p-4 border-t border-gray-700">

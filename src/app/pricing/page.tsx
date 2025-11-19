@@ -84,31 +84,25 @@ export default function PricingPage() {
   const formatPrice = (usdPrice: number | undefined, isCustom: boolean = false): string => {
     if (isCustom || usdPrice === undefined) return "Custom";
 
-    const price = billingCycle === "annual" ? usdPrice : usdPrice;
-
     if (currency === "INR") {
-      const inrPrice = Math.round(price * exchangeRate);
+      const inrPrice = Math.round(usdPrice * exchangeRate);
       return `₹${inrPrice.toLocaleString("en-IN")}${billingCycle === "annual" ? "/year" : "/month"}`;
     }
-    return `$${price}${billingCycle === "annual" ? "/year" : "/month"}`;
+    return `$${usdPrice}${billingCycle === "annual" ? "/year" : "/month"}`;
   };
 
   const formatPriceDescription = (usdPrice: number | undefined): string => {
     if (usdPrice === undefined) return "Tailored to your needs";
 
     if (currency === "INR") {
-      const monthlyPrice = Math.round(usdPrice * exchangeRate);
-      const annualPrice = Math.round(usdPrice * 12 * exchangeRate);
-
       if (billingCycle === "annual") {
-        return `Billed annually (₹${annualPrice.toLocaleString("en-IN")})`;
+        return `Billed annually`;
       }
       return `Billed monthly`;
     }
 
     if (billingCycle === "annual") {
-      const annualPrice = usdPrice * 12;
-      return `Billed annually ($${annualPrice})`;
+      return `Billed annually`;
     }
     return `Billed monthly`;
   };
@@ -245,7 +239,7 @@ export default function PricingPage() {
     },
     {
       question: "Do you offer discounts for annual billing?",
-      answer: "Yes, we offer a 20% discount when you choose annual billing instead of monthly payments.",
+      answer: "Yes, we offer significant discounts when you choose annual billing instead of monthly payments. The annual prices shown already include the discount.",
     },
     {
       question: "What payment methods do you accept?",
@@ -357,7 +351,7 @@ export default function PricingPage() {
                 ></div>
               </label>
               <span className={`font-semibold ${billingCycle === "annual" ? "text-gray-900" : "text-gray-500"}`}>
-                Annual <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs ml-1">Save 20%</span>
+                Annual <span className="bg-green-500 text-white px-2 py-1 rounded-full text-xs ml-1">Best Value</span>
               </span>
             </div>
           </div>
@@ -560,37 +554,6 @@ export default function PricingPage() {
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* Final CTA Section */}
-        <section 
-          className="py-16 text-center text-white"
-          style={{
-            background: 'linear-gradient(135deg, #4299e1 0%, #3182ce 100%)'
-          }}
-        >
-          <div className="container mx-auto px-4 max-w-4xl">
-            <h2 className="text-3xl font-bold mb-4">Ready to Improve Your SEO?</h2>
-            <p className="text-xl mb-8 opacity-90">
-              Join thousands of businesses using our AI-powered SEO audit tool
-            </p>
-            <button
-              className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors duration-200"
-              onClick={() => {
-                const professionalPlan = plans.find(plan => 
-                  plan.name.toLowerCase().includes('professional') || 
-                  plan.highlight
-                );
-                if (professionalPlan) {
-                  handleSubscribe(professionalPlan._id);
-                } else if (plans.length > 0) {
-                  handleSubscribe(plans[0]._id);
-                }
-              }}
-            >
-              Get Started Now
-            </button>
           </div>
         </section>
 

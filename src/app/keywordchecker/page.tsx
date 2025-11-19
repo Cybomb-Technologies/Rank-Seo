@@ -136,6 +136,11 @@ export default function KeywordAnalyzer() {
         window.location.href = "/login";
         return;
       }
+      if (err.response?.status === 403) {
+        const errorData = err.response.data;
+        setError(errorData.error || "Usage limit reached. Please upgrade your plan.");
+        return;
+      }
       const errorMessage =
         err.response?.data?.error ||
         "Failed to fetch data. The server might be down or the URL is unreachable.";

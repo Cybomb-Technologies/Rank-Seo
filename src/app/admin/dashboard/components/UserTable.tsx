@@ -88,8 +88,8 @@ export default function UserTable({ users, totalUsers, onViewUser }: UserTablePr
                         {user.name || "No Name"}
                       </div>
                       <div className="text-sm text-gray-500">{user.email}</div>
-                      {user.mobile && (
-                        <div className="text-xs text-gray-400">{user.mobile}</div>
+                      {user.phone && (
+                        <div className="text-xs text-gray-400">{user.phone}</div>
                       )}
                     </div>
                   </div>

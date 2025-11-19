@@ -22,6 +22,24 @@ interface DecodedToken {
   };
 }
 
+interface UserProfile {
+  name: string;
+  email: string;
+  mobile?: string;
+  planName: string;
+  billingCycle: string;
+  subscriptionStatus: string;
+  planExpiry: string;
+  maxAuditsPerMonth: number;
+  
+  auditsUsed: number;
+
+  memberSince: string;
+  autoRenewal: boolean;
+  renewalStatus: string;
+  nextRenewalDate: string;
+}
+
 interface Recommendation {
   text: string;
   priority: "High" | "Medium" | "Low";
@@ -56,11 +74,14 @@ export default function AuditPage() {
   const [loadingStep, setLoadingStep] = useState("Initializing audit...");
   const [auditCount, setAuditCount] = useState(0);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
   const router = useRouter();
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   useEffect(() => {
     const storedCount = localStorage.getItem("auditCount");
@@ -69,11 +90,33 @@ export default function AuditPage() {
     // Check if user is logged in
     const token = localStorage.getItem("token");
     setIsLoggedIn(!!token);
+
+    // Fetch user profile if logged in
+    if (token) {
+      fetchUserProfile(token);
+    }
   }, []);
 
   useEffect(() => {
     localStorage.setItem("auditCount", auditCount.toString());
   }, [auditCount]);
+
+  const fetchUserProfile = async (token: string) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/payments/user/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        setUserProfile(userData);
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
 
   const startProgressAnimation = () => {
     setProgress(0);
@@ -110,6 +153,22 @@ export default function AuditPage() {
       return;
     }
 
+    // Check if user is logged in and has reached limit
+    if (isLoggedIn && userProfile) {
+      if (userProfile.auditsUsed >= userProfile.maxAuditsPerMonth) {
+        alert(`❌ Monthly audit limit reached! You've used ${userProfile.auditsUsed} out of ${userProfile.maxAuditsPerMonth} audits. Please upgrade your plan.`);
+        router.push('/pricing');
+        return;
+      }
+
+      // Check if subscription is active for paid plans
+      if (userProfile.subscriptionStatus !== "active" && userProfile.maxAuditsPerMonth > 5) {
+        alert(`❌ Your subscription is not active. Please renew your subscription to continue using ${userProfile.maxAuditsPerMonth} audits per month.`);
+        router.push('/pricing');
+        return;
+      }
+    }
+
     if (!isLoggedIn && auditCount >= 3) {
       alert("🚀 Free audits used up! Please sign in to continue.");
       router.push("/login");
@@ -133,7 +192,6 @@ export default function AuditPage() {
         console.error("❌ Invalid token:", err);
       }
     }
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     try {
       // ✅ Run local audit with abort signal
@@ -151,8 +209,8 @@ export default function AuditPage() {
 
       // ✅ Decide endpoint: logged-in → save, guest → per-IP guest audits
       const endpoint = token
-        ? `${API_URL}/api/create-audits`
-        : `${API_URL}/api/guest-audits`;
+        ? `${API_BASE}/api/create-audits`
+        : `${API_BASE}/api/guest-audits`;
 
       // ✅ Save audit (or guest audit check)
       const response = await fetch(endpoint, {
@@ -167,14 +225,27 @@ export default function AuditPage() {
       });
 
       if (response.status === 403) {
-        alert("🚀 Free audits used up for today! Please login.");
-        router.push("/login");
+        const errorData = await response.json();
+        alert(errorData.message || "🚀 Free audits used up for today! Please login.");
+        if (!isLoggedIn) {
+          router.push("/login");
+        }
         return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
       setReport(data.audit || data);
       setAuditCount((prev) => prev + 1);
+      
+      // Refresh user profile to update audit count
+      if (token) {
+        await fetchUserProfile(token);
+      }
+      
       stopProgressAnimation(true);
     } catch (err: any) {
       if (err.name === "AbortError") {
@@ -209,6 +280,10 @@ export default function AuditPage() {
     image: "https://rankseo.in/SEO_LOGO.png",
   };
 
+  // Show usage info for logged-in users
+  const showUsageInfo = isLoggedIn && userProfile;
+  const remainingAudits = userProfile ? Math.max(0, userProfile.maxAuditsPerMonth - userProfile.auditsUsed) : 0;
+
   return (
     <>
       <Metatags metaProps={metaPropsData} />
@@ -224,6 +299,44 @@ export default function AuditPage() {
           progress={progress}
           loadingStep={loadingStep}
         />
+
+        {/* 🔹 Usage Info for Logged-in Users */}
+        {showUsageInfo && (
+          <div className="container mx-auto px-3 sm:px-4 md:px-6 mt-4">
+            <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-blue-500">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="font-semibold text-gray-800">
+                    {userProfile.planName} Plan - Monthly Usage
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {userProfile.auditsUsed} / {userProfile.maxAuditsPerMonth === Infinity ? 'Unlimited' : userProfile.maxAuditsPerMonth} audits used
+                    {userProfile.maxAuditsPerMonth !== Infinity && (
+                      <span className="ml-2">({remainingAudits} remaining)</span>
+                    )}
+                  </p>
+                </div>
+                {userProfile.maxAuditsPerMonth !== Infinity && (
+                  <div className="w-full sm:w-48 mt-2 sm:mt-0">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                        style={{ 
+                          width: `${Math.min((userProfile.auditsUsed / userProfile.maxAuditsPerMonth) * 100, 100)}%` 
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {userProfile.auditsUsed >= userProfile.maxAuditsPerMonth && (
+                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                  ❌ You've reached your monthly audit limit. <a href="/pricing" className="underline font-semibold">Upgrade your plan</a> to continue.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* 🔹 Sample Report Section */}
         {!report && !loading && (
@@ -326,8 +439,6 @@ export default function AuditPage() {
                         score={report.bestPractices || 0}
                       />
                     </div>
-
-                    {/* <PerformanceMetrics report={report} /> */}
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
                       <ScoresRadar
