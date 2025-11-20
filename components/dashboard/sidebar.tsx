@@ -45,6 +45,11 @@ const sidebarItems = [
     icon: User,
   },
   {
+    title: "Billing",
+    href: "/profile/billing",
+    icon: User,
+  },
+  {
     title: "Support",
     href: "/profile/support",
     icon: HelpCircle,

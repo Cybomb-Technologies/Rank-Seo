@@ -41,7 +41,22 @@ const pricingPlanSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
-  maxTrackedKeywords: {
+  maxKeywordReportsPerMonth: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  maxBusinessNamesPerMonth: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  maxKeywordChecksPerMonth: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  maxKeywordScrapesPerMonth: {
     type: Number,
     default: 0,
     min: 0
@@ -62,6 +77,14 @@ const pricingPlanSchema = new mongoose.Schema({
   sortOrder: {
     type: Number,
     default: 999
+  },
+  includesTax: {
+    type: Boolean,
+    default: false
+  },
+  isFree: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true
@@ -73,10 +96,12 @@ pricingPlanSchema.index({ name: 1 }, { unique: true });
 
 // Virtual for formatted price display
 pricingPlanSchema.virtual('formattedMonthlyUSD').get(function() {
+  if (this.isFree) return 'Free';
   return this.monthlyUSD !== null ? `$${this.monthlyUSD}` : 'Custom';
 });
 
 pricingPlanSchema.virtual('formattedAnnualUSD').get(function() {
+  if (this.isFree) return 'Free';
   return this.annualUSD !== null ? `$${this.annualUSD}` : 'Custom';
 });
 

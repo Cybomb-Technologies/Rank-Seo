@@ -7,7 +7,10 @@ import OverviewTab from "./components/tabs/OverviewTab";
 import UsersTab from "./components/tabs/UsersTab";
 import AuditTab from "./components/tabs/AuditTab";
 import PricingTab from "./components/tabs/PricingTab";
+import AdminPaymentsPage from "./components/tabs/PaymentTab";
 import LoadingSpinner from "./components/LoadingSpinner";
+import AdminNewsletterPage from "./components/tabs/NewsletterTab";
+import SupportTab from "./components/tabs/SupportTab";
 import { DashboardData } from "./types";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ;
@@ -67,7 +70,7 @@ export default function AdminDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
-    router.push("/admin/login");
+    router.push("/admin");
   };
 
   const refreshData = () => {
@@ -98,6 +101,10 @@ export default function AdminDashboard() {
           {activeTab === "users" && data && <UsersTab data={data} />}
           {activeTab === "audit" && data && <AuditTab data={data} />}
           {activeTab === "pricing" && data && <PricingTab data={data} />}
+          {activeTab === "payments" && data && <AdminPaymentsPage data={data} />}
+          {activeTab === "newsletter" && data && <AdminNewsletterPage data={data} />}
+          {activeTab === "support" && data && <SupportTab data={data} />}
+
         </div>
       </div>
     </div>

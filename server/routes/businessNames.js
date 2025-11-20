@@ -1,21 +1,28 @@
+// routes/businessNameRoutes.js
 const express = require('express');
 const router = express.Router();
 const businessNameController = require('../controllers/businessNameController');
-const auth = require('../middleware/auth'); // Your existing auth middleware
+const auth = require('../middleware/auth');
 
-// Save generated names as single document
-router.post('/names', auth, businessNameController.saveGeneratedNames);
+// Apply auth middleware to all routes
+router.use(auth);
+
+// Generate names (with usage limit check)
+router.post('/generate', businessNameController.generateNames);
+
+// Save names to database
+router.post('/names', businessNameController.saveGeneratedNames);
 
 // Get names by session ID
-router.get('/names/session/:sessionId', auth, businessNameController.getNamesBySession);
+router.get('/names/:sessionId', businessNameController.getNamesBySession);
 
-// Get all sessions
-router.get('/sessions', auth, businessNameController.getAllSessions);
+// Get all sessions for user
+router.get('/sessions', businessNameController.getAllSessions);
 
 // Get analytics
-router.get('/analytics', auth, businessNameController.getAnalytics);
+router.get('/analytics', businessNameController.getAnalytics);
 
 // Delete session
-router.delete('/session/:sessionId', auth, businessNameController.deleteSession);
+router.delete('/sessions/:sessionId', businessNameController.deleteSession);
 
 module.exports = router;

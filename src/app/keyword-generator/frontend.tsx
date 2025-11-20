@@ -17,7 +17,9 @@ import {
   ChevronDown,
   BarChart3,
   DollarSign,
-  X, // Added X icon for modal close
+  X,
+  Download,
+  AlertTriangle,
 } from "lucide-react";
 import { useState, Dispatch, SetStateAction } from "react";
 
@@ -32,8 +34,15 @@ interface Keyword {
   intent: string;
   content_type: string; 
   keyword_density: number;
-  // -----------------------------
   content_idea: string;
+}
+
+// Usage limits interface
+interface UsageLimits {
+  used: number;
+  limit: number;
+  remaining: number;
+  message?: string;
 }
 
 // --- Difficulty Badge Styles ---
@@ -82,6 +91,90 @@ export const ProgressBar = ({
   </div>
 );
 
+// --- Usage Limit Alert ---
+export const UsageLimitAlert = ({ 
+  usageLimits,
+  onUpgrade
+}: { 
+  usageLimits: UsageLimits;
+  onUpgrade: () => void;
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: -10 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6"
+  >
+    <div className="flex items-start gap-3">
+      <AlertTriangle className="text-orange-500 mt-0.5 flex-shrink-0" size={20} />
+      <div className="flex-1">
+        <h4 className="font-semibold text-orange-800">Usage Limit Reached</h4>
+        <p className="text-orange-700 text-sm mt-1">
+          {usageLimits.message || `You've used ${usageLimits.used} of ${usageLimits.limit} keyword reports this month.`}
+        </p>
+        <div className="w-full bg-orange-200 rounded-full h-2 mt-2">
+          <div 
+            className="bg-orange-500 h-2 rounded-full transition-all duration-500"
+            style={{ width: `${Math.min(100, (usageLimits.used / usageLimits.limit) * 100)}%` }}
+          />
+        </div>
+        <p className="text-orange-600 text-xs mt-2">
+          {usageLimits.remaining <= 0 ? (
+            "No reports remaining. Upgrade your plan to continue."
+          ) : (
+            `${usageLimits.remaining} reports remaining`
+          )}
+        </p>
+        <button
+          onClick={onUpgrade}
+          className="mt-3 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+        >
+          Upgrade Plan
+        </button>
+      </div>
+    </div>
+  </motion.div>
+);
+
+// --- Usage Limit Display ---
+export const UsageLimitDisplay = ({ 
+  usageLimits 
+}: { 
+  usageLimits: UsageLimits;
+}) => {
+  const remaining = Math.max(0, usageLimits.limit - usageLimits.used);
+  
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h4 className="font-semibold text-gray-800">Keyword Reports</h4>
+          <p className="text-gray-600 text-sm">
+            {usageLimits.used} of {usageLimits.limit} used this month
+          </p>
+        </div>
+        <div className="text-right">
+          <div className="text-lg font-bold text-teal-600">
+            {remaining}
+          </div>
+          <div className="text-xs text-gray-500">Remaining</div>
+        </div>
+      </div>
+      <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+        <div 
+          className="bg-gradient-to-r from-teal-500 to-emerald-500 h-2 rounded-full transition-all duration-500"
+          style={{ width: `${Math.min(100, (usageLimits.used / usageLimits.limit) * 100)}%` }}
+        />
+      </div>
+      {remaining <= 2 && remaining > 0 && (
+        <p className="text-orange-600 text-xs mt-2 flex items-center gap-1">
+          <AlertTriangle size={12} />
+          Low on reports. Consider upgrading your plan.
+        </p>
+      )}
+    </div>
+  );
+};
+
 // --- Input Field ---
 export const InputField = ({
   icon,
@@ -123,6 +216,8 @@ export const GeneratorHeader = ({
   handleGenerateKeywords,
   progress,
   loadingStep,
+  usageLimits,
+  onUpgrade,
 }: {
   topic: string;
   setTopic: (val: string) => void;
@@ -134,67 +229,103 @@ export const GeneratorHeader = ({
   handleGenerateKeywords: () => void;
   progress?: number;
   loadingStep?: string;
-}) => (
-  <div className="bg-gradient-to-r pt-30 from-white via-gray-50 to-white py-12 text-center shadow-sm border-b border-gray-200">
-    <div className="container mx-auto relative z-10">
-      <h1 className="text-3xl md:text-5xl font-extrabold text-gray-800 flex items-center justify-center gap-2">
-        <Sparkles className="text-teal-500" size={28} />
-        AI-Powered Keyword Generator
-        <Sparkles className="text-emerald-400" size={28} />
-      </h1>
-      <p className="mt-3 text-gray-500 max-w-2xl mx-auto">
-        Fuel your content strategy with intelligent keyword insights tailored to
-        your business.
-      </p>
+  usageLimits?: UsageLimits;
+  onUpgrade: () => void;
+}) => {
+  const hasReachedLimit = usageLimits && usageLimits.remaining <= 0;
+  const isDisabled = loading || !topic || !industry || !audience || hasReachedLimit;
 
-      <div className="mt-8 max-w-3xl mx-auto w-full bg-white border border-gray-200 rounded-xl shadow-md p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <InputField
-            icon={<Target size={18} />}
-            placeholder="Primary Topic"
-            value={topic}
-            onChange={setTopic}
-            disabled={loading}
-          />
-          <InputField
-            icon={<Building size={18} />}
-            placeholder="Industry"
-            value={industry}
-            onChange={setIndustry}
-            disabled={loading}
-          />
-          <InputField
-            icon={<Users size={18} />}
-            placeholder="Target Audience"
-            value={audience}
-            onChange={setAudience}
-            disabled={loading}
-          />
-        </div>
-        <motion.button
-          onClick={handleGenerateKeywords}
-          disabled={loading || !topic || !industry || !audience}
-          whileHover={{ scale: loading ? 1 : 1.03 }}
-          whileTap={{ scale: loading ? 1 : 0.97 }}
-          className={`mx-auto px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-3 text-white transition-all duration-300 ${
-            loading || !topic || !industry || !audience
-              ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-              : "bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 shadow-lg"
-          }`}
-        >
-          {loading ? <Clock size={20} className="animate-spin" /> : <Search size={20} />}
-          {loading ? "Generating..." : "Generate Keywords"}
-        </motion.button>
-      </div>
+  return (
+    <div className="bg-gradient-to-r pt-30 from-white via-gray-50 to-white py-12 text-center shadow-sm border-b border-gray-200">
+      <div className="container mx-auto relative z-10">
+        <h1 className="text-3xl md:text-5xl font-extrabold text-gray-800 flex items-center justify-center gap-2">
+          <Sparkles className="text-teal-500" size={28} />
+          AI-Powered Keyword Generator
+          <Sparkles className="text-emerald-400" size={28} />
+        </h1>
+        <p className="mt-3 text-gray-500 max-w-2xl mx-auto">
+          Fuel your content strategy with intelligent keyword insights tailored to
+          your business.
+        </p>
 
-      <AnimatePresence>
-        {loading && progress !== undefined && loadingStep && (
-          <ProgressBar progress={progress} loadingStep={loadingStep} />
+        {/* Usage Limit Alert */}
+        {hasReachedLimit && usageLimits && (
+          <UsageLimitAlert usageLimits={usageLimits} onUpgrade={onUpgrade} />
         )}
-      </AnimatePresence>
+
+        <div className="mt-8 max-w-3xl mx-auto w-full bg-white border border-gray-200 rounded-xl shadow-md p-6">
+          {/* Usage Display */}
+          {usageLimits && !hasReachedLimit && (
+            <UsageLimitDisplay usageLimits={usageLimits} />
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <InputField
+              icon={<Target size={18} />}
+              placeholder="Primary Topic"
+              value={topic}
+              onChange={setTopic}
+              disabled={loading || hasReachedLimit}
+            />
+            <InputField
+              icon={<Building size={18} />}
+              placeholder="Industry"
+              value={industry}
+              onChange={setIndustry}
+              disabled={loading || hasReachedLimit}
+            />
+            <InputField
+              icon={<Users size={18} />}
+              placeholder="Target Audience"
+              value={audience}
+              onChange={setAudience}
+              disabled={loading || hasReachedLimit}
+            />
+          </div>
+          <motion.button
+            onClick={handleGenerateKeywords}
+            disabled={isDisabled}
+            whileHover={{ scale: isDisabled ? 1 : 1.03 }}
+            whileTap={{ scale: isDisabled ? 1 : 0.97 }}
+            className={`mx-auto px-8 py-3 rounded-lg font-semibold flex items-center justify-center gap-3 text-white transition-all duration-300 ${
+              isDisabled
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 shadow-lg"
+            }`}
+          >
+            {loading ? (
+              <Clock size={20} className="animate-spin" />
+            ) : hasReachedLimit ? (
+              <AlertTriangle size={20} />
+            ) : (
+              <Search size={20} />
+            )}
+            {hasReachedLimit ? "Usage Limit Reached" : loading ? "Generating..." : "Generate Keywords"}
+          </motion.button>
+
+          {hasReachedLimit && (
+            <p className="text-sm text-gray-500 mt-3">
+              You've reached your monthly limit.{" "}
+              <button 
+                onClick={onUpgrade}
+                className="text-teal-600 hover:text-teal-700 font-medium underline"
+              >
+                Upgrade your plan
+              </button>{" "}
+              to generate more keyword reports.
+            </p>
+          )}
+        </div>
+
+        <AnimatePresence>
+          {loading && progress !== undefined && loadingStep && (
+            <ProgressBar progress={progress} loadingStep={loadingStep} />
+          )}
+        </AnimatePresence>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // --- Helper for Detail View ---
 const DetailRow = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) => (
@@ -207,8 +338,7 @@ const DetailRow = ({ icon, label, value }: { icon: React.ReactNode; label: strin
   </div>
 );
 
-
-// --- NEW: KeywordDetailModal Component ---
+// --- KeywordDetailModal Component ---
 const KeywordDetailModal = ({
   keyword,
   onClose,
@@ -220,9 +350,9 @@ const KeywordDetailModal = ({
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
-    // MODIFIED: Added backdrop-blur-sm
-    className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{backgroundColor:"#00000061"}}
-    onClick={onClose} // Close on backdrop click
+    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    style={{backgroundColor:"#00000061"}}
+    onClick={onClose}
   >
     <motion.div
       initial={{ scale: 0.9, y: 50 }}
@@ -230,7 +360,7 @@ const KeywordDetailModal = ({
       exit={{ scale: 0.9, y: 50 }}
       transition={{ type: "spring", stiffness: 200, damping: 25 }}
       className="bg-white rounded-xl shadow-2xl p-6 md:p-8 w-full max-w-md mx-auto"
-      onClick={(e) => e.stopPropagation()} // Prevent close on modal content click
+      onClick={(e) => e.stopPropagation()}
     >
       <div className="flex justify-between items-start border-b pb-3 mb-4">
         <h3 className="text-xl md:text-2xl font-bold text-gray-800 break-words pr-4">
@@ -296,26 +426,24 @@ const KeywordDetailModal = ({
   </motion.div>
 );
 
-
-// --- Modified KeywordCard Component to open Modal ---
+// --- KeywordCard Component ---
 export const KeywordCard = ({
   keyword,
   index,
-  onOpenModal, // New prop to open the modal
+  onOpenModal,
 }: {
   keyword: Keyword;
   index: number;
   onOpenModal: (keyword: Keyword) => void;
 }) => (
   <motion.div
-    layout // Keeps layout for smooth reordering/filtering
+    layout
     initial={{ opacity: 0, y: 30 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: index * 0.05, duration: 0.4, ease: "easeOut" }}
     className="bg-white p-5 rounded-xl shadow-md border border-gray-200 transition-all hover:shadow-lg hover:border-teal-300 cursor-pointer"
-    onClick={() => onOpenModal(keyword)} // Open modal on click
+    onClick={() => onOpenModal(keyword)}
   >
-    {/* --- Card Content --- */}
     <div className="flex justify-between items-start gap-3">
       <h4 className="font-semibold text-gray-800 text-base sm:text-lg flex-1">
         {keyword.keyword}
@@ -343,15 +471,14 @@ export const KeywordCard = ({
 export const KeywordResults = ({
   topic,
   keywords,
+  usageLimits,
 }: {
   topic: string;
   keywords: Keyword[];
+  usageLimits?: UsageLimits;
 }) => {
-  // const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set()); // Removed expansion state
   const [activeTab, setActiveTab] = useState<"Easy" | "Medium" | "Hard">("Easy");
-  const [modalKeyword, setModalKeyword] = useState<Keyword | null>(null); // New state for modal
-
-  // const toggleCard = (keywordString: string) => { /* Removed toggleCard */ };
+  const [modalKeyword, setModalKeyword] = useState<Keyword | null>(null);
 
   const filtered = keywords.filter((k) =>
     k.difficulty_score.toLowerCase().includes(activeTab.toLowerCase())
@@ -361,16 +488,24 @@ export const KeywordResults = ({
     <div className="bg-white border border-gray-200 rounded-2xl shadow-lg overflow-hidden">
       <div className="p-8 bg-gradient-to-r from-teal-500 to-emerald-500 text-white">
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <List size={24} /> Keyword Report for "{topic}"
-          </h2>
+          <div>
+            <h2 className="text-2xl font-bold flex items-center gap-2">
+              <List size={24} /> Keyword Report for "{topic}"
+            </h2>
+            {usageLimits && (
+              <p className="text-teal-100 text-sm mt-1">
+                Used {usageLimits.used} of {usageLimits.limit} reports this month
+              </p>
+            )}
+          </div>
 
           <button
-  onClick={() => exportToCSV(keywords, `${topic}-keywords.csv`)}
-  className="ml-auto bg-white text-teal-600 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100 text-sm font-medium transition"
->
-  ⬇ Download CSV
-</button>
+            onClick={() => exportToCSV(keywords, `${topic}-keywords.csv`)}
+            className="ml-auto bg-white text-teal-600 px-4 py-2 rounded-lg shadow-md hover:bg-gray-100 text-sm font-medium transition flex items-center gap-2"
+          >
+            <Download size={16} />
+            Download CSV
+          </button>
         </div>
 
         <div className="flex gap-3 mt-4">
@@ -397,16 +532,15 @@ export const KeywordResults = ({
         transition={{ duration: 0.5 }}
       >
         {filtered.map((keyword, i) => (
-           <KeywordCard
+          <KeywordCard
             key={keyword.keyword}
             keyword={keyword}
             index={i}
-            onOpenModal={setModalKeyword} // Pass setModalKeyword to open the modal
+            onOpenModal={setModalKeyword}
           />
         ))}
       </motion.div>
 
-      {/* --- Keyword Detail Modal (Popup) --- */}
       <AnimatePresence>
         {modalKeyword && (
           <KeywordDetailModal 

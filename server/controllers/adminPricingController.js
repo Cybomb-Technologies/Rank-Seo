@@ -55,8 +55,13 @@ exports.createPricingPlan = async (req, res) => {
       highlight,
       features,
       maxAuditsPerMonth,
-      maxTrackedKeywords,
-      sortOrder
+      maxKeywordReportsPerMonth,
+      maxBusinessNamesPerMonth,
+      maxKeywordChecksPerMonth,
+      maxKeywordScrapesPerMonth,
+      sortOrder,
+      isFree,
+      includesTax
     } = req.body;
 
     // Validate required fields
@@ -67,24 +72,29 @@ exports.createPricingPlan = async (req, res) => {
       });
     }
 
-    if (!custom && (monthlyUSD === undefined || annualUSD === undefined)) {
+    if (!isFree && !custom && (monthlyUSD === undefined || annualUSD === undefined)) {
       return res.status(400).json({
         success: false,
-        message: "Non-custom plans must have monthlyUSD and annualUSD"
+        message: "Non-custom, non-free plans must have monthlyUSD and annualUSD"
       });
     }
 
     const newPlan = new PricingPlan({
       name,
       description,
-      monthlyUSD: custom ? undefined : monthlyUSD,
-      annualUSD: custom ? undefined : annualUSD,
+      monthlyUSD: isFree ? 0 : (custom ? undefined : monthlyUSD),
+      annualUSD: isFree ? 0 : (custom ? undefined : annualUSD),
       custom: custom || false,
       highlight: highlight || false,
       features: features || [],
       maxAuditsPerMonth: maxAuditsPerMonth || 0,
-      maxTrackedKeywords: maxTrackedKeywords || 0,
-      sortOrder: sortOrder || 0
+      maxKeywordReportsPerMonth: maxKeywordReportsPerMonth || 0,
+      maxBusinessNamesPerMonth: maxBusinessNamesPerMonth || 0,
+      maxKeywordChecksPerMonth: maxKeywordChecksPerMonth || 0,
+      maxKeywordScrapesPerMonth: maxKeywordScrapesPerMonth || 0,
+      sortOrder: sortOrder || 0,
+      isFree: isFree || false,
+      includesTax: includesTax || false
     });
 
     const savedPlan = await newPlan.save();
@@ -126,25 +136,30 @@ exports.updatePricingPlans = async (req, res) => {
         });
       }
 
-      if (!plan.custom && (plan.monthlyUSD === undefined || plan.annualUSD === undefined)) {
+      if (!plan.isFree && !plan.custom && (plan.monthlyUSD === undefined || plan.annualUSD === undefined)) {
         return res.status(400).json({
           success: false,
-          message: "Non-custom plans must have monthlyUSD and annualUSD"
+          message: "Non-custom, non-free plans must have monthlyUSD and annualUSD"
         });
       }
 
       const updateFields = {
         name: plan.name,
         description: plan.description,
-        monthlyUSD: plan.custom ? undefined : plan.monthlyUSD,
-        annualUSD: plan.custom ? undefined : plan.annualUSD,
+        monthlyUSD: plan.isFree ? 0 : (plan.custom ? undefined : plan.monthlyUSD),
+        annualUSD: plan.isFree ? 0 : (plan.custom ? undefined : plan.annualUSD),
         custom: plan.custom || false,
         highlight: plan.highlight || false,
         features: plan.features || [],
         maxAuditsPerMonth: plan.maxAuditsPerMonth || 0,
-        maxTrackedKeywords: plan.maxTrackedKeywords || 0,
+        maxKeywordReportsPerMonth: plan.maxKeywordReportsPerMonth || 0,
+        maxBusinessNamesPerMonth: plan.maxBusinessNamesPerMonth || 0,
+        maxKeywordChecksPerMonth: plan.maxKeywordChecksPerMonth || 0,
+        maxKeywordScrapesPerMonth: plan.maxKeywordScrapesPerMonth || 0,
         sortOrder: plan.sortOrder || 0,
-        isActive: plan.isActive !== undefined ? plan.isActive : true
+        isActive: plan.isActive !== undefined ? plan.isActive : true,
+        isFree: plan.isFree || false,
+        includesTax: plan.includesTax !== undefined ? plan.includesTax : false
       };
 
       if (plan._id) {

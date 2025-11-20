@@ -1,7 +1,8 @@
+// page.tsx
 "use client";
 
-import { useState, useRef } from "react";
-import { Building, Sparkles, Target, Users } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Building, Sparkles, Target, Users, Crown } from "lucide-react";
 import { GeneratorHeader, KeywordResults } from "./frontend";
 import Metatags from "../../SEO/metatags";
 
@@ -22,6 +23,13 @@ interface KeywordReport {
   keywords: Keyword[];
 }
 
+interface UsageLimits {
+  used: number;
+  limit: number;
+  remaining: number;
+  message?: string;
+}
+
 const N8N_WEBHOOK_URL = "https://n8n.cybomb.com/webhook/keyword-generator";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -33,6 +41,8 @@ export default function KeywordGeneratorPage() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [loadingStep, setLoadingStep] = useState("Initializing...");
+  const [usageLimits, setUsageLimits] = useState<UsageLimits | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -42,6 +52,49 @@ export default function KeywordGeneratorPage() {
       return localStorage.getItem("token");
     }
     return null;
+  };
+
+  // Fetch usage limits on component mount
+  useEffect(() => {
+    fetchUsageLimits();
+  }, []);
+
+  const fetchUsageLimits = async () => {
+    try {
+      const token = getToken();
+      if (!token) return;
+
+      const response = await fetch(`${API_BASE_URL}/api/keywords/reports`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.usage) {
+          const used = data.usage.used || 0;
+          const limit = data.usage.limit || 10;
+          const remaining = Math.max(0, limit - used);
+          
+          setUsageLimits({
+            used: used,
+            limit: limit,
+            remaining: remaining,
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch usage limits:", error);
+      // Set default limits if fetch fails
+      setUsageLimits({
+        used: 0,
+        limit: 10,
+        remaining: 10,
+      });
+    }
   };
 
   const startProgressAnimation = (initialTopic: string) => {
@@ -120,6 +173,23 @@ export default function KeywordGeneratorPage() {
           window.location.href = "/login";
           return false;
         }
+
+        if (saveResponse.status === 403) {
+          // Usage limit exceeded
+          const errorData = await saveResponse.json();
+          const used = errorData.usage?.used || 0;
+          const limit = errorData.usage?.limit || 10;
+          const remaining = Math.max(0, limit - used);
+          
+          setUsageLimits({
+            used: used,
+            limit: limit,
+            remaining: remaining,
+            message: errorData.message || "Usage limit exceeded",
+          });
+          return false;
+        }
+
         const errorText = await saveResponse.text();
         console.error("❌ Save failed with response:", errorText);
         throw new Error(`Save failed: ${saveResponse.status} - ${errorText}`);
@@ -127,6 +197,20 @@ export default function KeywordGeneratorPage() {
 
       const saveResult = await saveResponse.json();
       console.log("✅ Keyword report saved to database:", saveResult.data);
+      
+      // Update usage limits after successful save
+      if (saveResult.usage) {
+        const used = saveResult.usage.used;
+        const limit = saveResult.usage.limit;
+        const remaining = Math.max(0, limit - used);
+        
+        setUsageLimits({
+          used: used,
+          limit: limit,
+          remaining: remaining,
+        });
+      }
+      
       return true;
     } catch (error) {
       console.error("❌ Error saving to database:", error);
@@ -137,6 +221,12 @@ export default function KeywordGeneratorPage() {
   const handleGenerateKeywords = async () => {
     if (!topic || !industry || !audience) {
       alert("⚠️ Please fill in all fields.");
+      return;
+    }
+
+    // Check usage limits before proceeding
+    if (usageLimits && usageLimits.remaining <= 0) {
+      setShowUpgradeModal(true);
       return;
     }
 
@@ -200,7 +290,12 @@ export default function KeywordGeneratorPage() {
       setReport({ topic: initialTopic, keywords: cleanedKeywords });
 
       // Save to MongoDB in background (silently)
-      saveKeywordReportToDatabase(cleanedKeywords, sessionId);
+      const saveSuccess = await saveKeywordReportToDatabase(cleanedKeywords, sessionId);
+      
+      if (!saveSuccess && usageLimits?.remaining === 0) {
+        // If save failed due to usage limits, show upgrade modal
+        setShowUpgradeModal(true);
+      }
 
       stopProgressAnimation(true);
     } catch (err: any) {
@@ -210,6 +305,10 @@ export default function KeywordGeneratorPage() {
     } finally {
       setTimeout(() => setLoading(false), 1000);
     }
+  };
+
+  const handleUpgradePlan = () => {
+    setShowUpgradeModal(true);
   };
 
   const metaPropsData = {
@@ -237,11 +336,17 @@ export default function KeywordGeneratorPage() {
           handleGenerateKeywords={handleGenerateKeywords}
           progress={progress}
           loadingStep={loadingStep}
+          usageLimits={usageLimits || undefined}
+          onUpgrade={handleUpgradePlan}
         />
 
         <div className="container mx-auto py-12 px-6">
           {report && (
-            <KeywordResults topic={report.topic} keywords={report.keywords} />
+            <KeywordResults 
+              topic={report.topic} 
+              keywords={report.keywords} 
+              usageLimits={usageLimits || undefined}
+            />
           )}
 
           {!report && !loading && (
@@ -271,6 +376,51 @@ export default function KeywordGeneratorPage() {
             </div>
           )}
         </div>
+
+        {/* Upgrade Plan Modal */}
+        {showUpgradeModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+              <div className="text-center">
+                <Crown className="text-yellow-500 mx-auto mb-4" size={48} />
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                  Upgrade Your Plan
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  You've reached your monthly limit of {usageLimits?.limit} keyword reports. 
+                  Upgrade to unlock more features and higher limits.
+                </p>
+                
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <h4 className="font-semibold text-gray-800 mb-2">Current Plan Features</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• {usageLimits?.limit || 10} keyword reports per month</li>
+                    <li>• Basic keyword analytics</li>
+                    <li>• CSV export functionality</li>
+                  </ul>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowUpgradeModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  >
+                    Maybe Later
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Redirect to pricing page
+                      window.location.href = "/pricing";
+                    }}
+                    className="flex-1 px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-lg hover:from-teal-600 hover:to-emerald-600 transition"
+                  >
+                    View Plans
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

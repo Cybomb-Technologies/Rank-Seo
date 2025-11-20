@@ -48,6 +48,27 @@ const paymentSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String
+    },
+    // Auto-renewal fields
+    autoRenewal: {
+      type: Boolean,
+      default: true
+    },
+    renewalAttempts: {
+      type: Number,
+      default: 0
+    },
+    maxRenewalAttempts: {
+      type: Number,
+      default: 3
+    },
+    nextRenewalDate: {
+      type: Date
+    },
+    renewalStatus: {
+      type: String,
+      enum: ["pending", "scheduled", "processing", "failed", "cancelled"],
+      default: "scheduled"
     }
   },
   { timestamps: true }
@@ -57,5 +78,8 @@ const paymentSchema = new mongoose.Schema(
 paymentSchema.index({ userId: 1, status: 1 });
 paymentSchema.index({ transactionId: 1 });
 paymentSchema.index({ createdAt: 1 });
+paymentSchema.index({ expiryDate: 1 });
+paymentSchema.index({ autoRenewal: 1, renewalStatus: 1 });
+paymentSchema.index({ nextRenewalDate: 1 });
 
 module.exports = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);

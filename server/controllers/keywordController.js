@@ -1,15 +1,31 @@
+// controllers/keywordController.js
 const KeywordReport = require('../models/KeywordReport');
+const UsageTracker = require('../utils/usageTracker');
 
 // Save generated keyword report
 exports.saveKeywordReport = async (req, res) => {
   try {
     const { topic, industry, audience, keywords, sessionId } = req.body;
-    const userId = req.user.id; // Get user from authenticated request
+    const userId = req.user.id;
 
     if (!userId) {
       return res.status(401).json({
         success: false,
         message: 'User authentication required'
+      });
+    }
+
+    // Check usage limit
+    const usageCheck = await UsageTracker.checkUsageLimit(userId, 'keyword-report');
+    if (!usageCheck.allowed) {
+      return res.status(403).json({
+        success: false,
+        message: usageCheck.message,
+        usage: {
+          used: usageCheck.used,
+          limit: usageCheck.limit,
+          remaining: usageCheck.remaining
+        }
       });
     }
 
@@ -67,6 +83,17 @@ exports.saveKeywordReport = async (req, res) => {
 
     const savedReport = await keywordReport.save();
 
+    // Increment usage
+    await UsageTracker.incrementUsage(userId, 'keyword-report');
+    
+    // Track keywords count
+    if (keywords.length > 0) {
+      await UsageTracker.incrementUsage(userId, 'tracked-keywords', keywords.length);
+    }
+
+    // Get updated usage stats
+    const updatedUsage = await UsageTracker.getUsageStats(userId);
+
     res.status(201).json({
       success: true,
       message: 'Keyword report saved successfully',
@@ -77,7 +104,8 @@ exports.saveKeywordReport = async (req, res) => {
         totalSearchVolume: savedReport.totalSearchVolume,
         averageCPC: savedReport.averageCPC,
         generatedAt: savedReport.generatedAt
-      }
+      },
+      usage: updatedUsage.keywordReports
     });
 
   } catch (error) {
@@ -158,9 +186,13 @@ exports.getAllKeywordReports = async (req, res) => {
 
     const total = await KeywordReport.countDocuments(filter);
 
+    // Get usage stats
+    const usageStats = await UsageTracker.getUsageStats(userId);
+
     res.json({
       success: true,
       data: reports,
+      usage: usageStats.keywordReports,
       pagination: {
         currentPage: parseInt(page),
         totalPages: Math.ceil(total / limit),
@@ -244,6 +276,9 @@ exports.getAnalytics = async (req, res) => {
       { $limit: 7 }
     ]);
 
+    // Get usage stats
+    const usageStats = await UsageTracker.getUsageStats(userId);
+
     res.json({
       success: true,
       data: {
@@ -252,7 +287,8 @@ exports.getAnalytics = async (req, res) => {
         industryStats,
         topicStats,
         recentActivity
-      }
+      },
+      usage: usageStats.keywordReports
     });
 
   } catch (error) {

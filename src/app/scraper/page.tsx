@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FC, useMemo } from "react";
+import { useState, FC, useMemo, useEffect } from "react";
 import axios from "axios";
 import Metatags from "../../SEO/metatags";
 
@@ -23,12 +23,20 @@ interface KeywordData {
   error?: string;
 }
 
+interface UsageLimits {
+  used: number;
+  limit: number;
+  remaining: number;
+  message?: string;
+}
+
 interface ApiResponse {
   success: boolean;
   data: KeywordData;
   mainUrl: string;
   totalScraped: number;
   reportId?: string;
+  usage?: UsageLimits;
   analysis: {
     sentToN8n: boolean;
     dataOptimized: boolean;
@@ -36,6 +44,12 @@ interface ApiResponse {
     savedToDb?: boolean;
   };
   error?: string;
+}
+
+interface ErrorResponse {
+  success: boolean;
+  error: string;
+  usage?: UsageLimits;
 }
 
 // Enhanced gradient configurations with teal theme
@@ -167,6 +181,45 @@ const StatsCard: FC<{
   </div>
 );
 
+
+
+// Usage Limit Alert Component
+const UsageLimitAlert: FC<{ 
+  usageLimits: UsageLimits;
+  onUpgrade: () => void;
+}> = ({ usageLimits, onUpgrade }) => (
+  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+    <div className="flex items-start gap-3">
+      <span className="text-orange-500 mt-0.5 flex-shrink-0 text-xl">⚠️</span>
+      <div className="flex-1">
+        <h4 className="font-semibold text-orange-800">Usage Limit Reached</h4>
+        <p className="text-orange-700 text-sm mt-1">
+          {usageLimits.message || `You've used ${usageLimits.used} of ${usageLimits.limit} website scans this month.`}
+        </p>
+        <div className="w-full bg-orange-200 rounded-full h-2 mt-2">
+          <div 
+            className="bg-orange-500 h-2 rounded-full transition-all duration-500"
+            style={{ width: `${Math.min(100, (usageLimits.used / usageLimits.limit) * 100)}%` }}
+          />
+        </div>
+        <p className="text-orange-600 text-xs mt-2">
+          {usageLimits.remaining <= 0 ? (
+            "No scans remaining. Upgrade your plan to continue."
+          ) : (
+            `${usageLimits.remaining} scans remaining`
+          )}
+        </p>
+        <button
+          onClick={onUpgrade}
+          className="mt-3 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+        >
+          Upgrade Plan
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 // Main Scraper Page component
 export default function ScraperPage() {
   const [url, setUrl] = useState<string>("");
@@ -179,6 +232,8 @@ export default function ScraperPage() {
     reportId?: string;
   } | null>(null);
   const [showAnimations, setShowAnimations] = useState(false);
+  const [usageLimits, setUsageLimits] = useState<UsageLimits | null>(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
   // Get token from localStorage
   const getToken = () => {
@@ -186,6 +241,57 @@ export default function ScraperPage() {
       return localStorage.getItem("token");
     }
     return null;
+  };
+
+  // Fetch usage limits on component mount
+  useEffect(() => {
+    fetchUsageLimits();
+  }, []);
+
+  const fetchUsageLimits = async () => {
+    try {
+      const token = getToken();
+      if (!token) return;
+
+      // Use /api/crawl/usage as defined in scraperRoutes.js
+      const response = await fetch(`${API_URL}/api/crawl/usage`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.usage) {
+          const used = data.usage.used || 0;
+          const limit = data.usage.limit || 10;
+          const remaining = Math.max(0, limit - used);
+          
+          setUsageLimits({
+            used: used,
+            limit: limit,
+            remaining: remaining,
+          });
+        }
+      } else {
+        // If usage endpoint fails, set default limits
+        setUsageLimits({
+          used: 0,
+          limit: 10,
+          remaining: 10,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch usage limits:", error);
+      // Set default limits if fetch fails
+      setUsageLimits({
+        used: 0,
+        limit: 10,
+        remaining: 10,
+      });
+    }
   };
 
   const handleCrawl = async () => {
@@ -200,6 +306,12 @@ export default function ScraperPage() {
       return;
     }
 
+    // The button is disabled when hasReachedLimit is true, but we explicitly check here
+    if (usageLimits && usageLimits.remaining <= 0) {
+      setShowUpgradeModal(true);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setJsonResult(null);
@@ -207,6 +319,7 @@ export default function ScraperPage() {
     setShowAnimations(false);
 
     try {
+      // Use /api/crawl as defined in scraperRoutes.js
       const response = await axios.post<ApiResponse>(
         `${API_URL}/api/crawl`,
         { url },
@@ -216,6 +329,7 @@ export default function ScraperPage() {
           },
         }
       );
+
       if (response.data?.success && response.data.data) {
         setJsonResult(response.data.data);
         setScrapeInfo({
@@ -223,6 +337,20 @@ export default function ScraperPage() {
           count: response.data.totalScraped,
           reportId: response.data.reportId,
         });
+        
+        // Update usage limits from API response
+        if (response.data.usage) {
+          const updatedUsed = response.data.usage.used;
+          const limit = response.data.usage.limit || 10;
+          const remaining = Math.max(0, limit - updatedUsed);
+          
+          setUsageLimits({
+            used: updatedUsed,
+            limit: limit,
+            remaining: remaining,
+          });
+        }
+        
         setTimeout(() => setShowAnimations(true), 500);
       } else {
         setError(
@@ -231,11 +359,49 @@ export default function ScraperPage() {
       }
     } catch (err: any) {
       console.error("Crawl error:", err);
+      
+      // Handle 401 Unauthorized
       if (err.response?.status === 401) {
         localStorage.removeItem("token");
         window.location.href = "/login";
         return;
       }
+      
+      // Handle 403 Forbidden (Usage limit exceeded)
+      if (err.response?.status === 403) {
+        const errorData: ErrorResponse = err.response.data;
+        console.log("Usage limit error:", errorData);
+        
+        // Use the usage data from the error response
+        if (errorData.usage) {
+          const updatedUsageLimits = {
+            used: errorData.usage.used,
+            limit: errorData.usage.limit,
+            remaining: errorData.usage.remaining,
+            message: errorData.error,
+          };
+          
+          setUsageLimits(updatedUsageLimits);
+          setShowUpgradeModal(true);
+          setError(null);
+        } else {
+          // Fallback if no usage data in error response (less likely with the current controller)
+          const used = (usageLimits?.used || 0) + 1;
+          const limit = usageLimits?.limit || 10;
+          const remaining = Math.max(0, limit - used);
+          
+          setUsageLimits({
+            used: used,
+            limit: limit,
+            remaining: remaining,
+            message: errorData.error || "Usage limit exceeded, but details are unavailable.",
+          });
+          setShowUpgradeModal(true);
+        }
+        return;
+      }
+      
+      // Handle other errors
       const errorMessage =
         err.response?.data?.error ||
         "Failed to fetch data. The server might be down or the URL is unreachable.";
@@ -265,6 +431,9 @@ export default function ScraperPage() {
     () => getTotalKeywordCount(jsonResult),
     [jsonResult]
   );
+
+  const hasReachedLimit = usageLimits && usageLimits.remaining <= 0;
+  const isDisabled = loading || !url || hasReachedLimit;
 
   const metaPropsData = {
     title: "SEO Keyword Extractor Tool | AI-Powered Keyword Analysis",
@@ -316,46 +485,73 @@ export default function ScraperPage() {
 
           <main>
             {/* Enhanced Input Section */}
-            <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto mb-10 relative">
-              <div className="relative flex-1 group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-600 text-base z-10">
-                    🔗
-                  </span>
-                  <input
-                    type="url"
-                    placeholder="https://example.com"
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="w-full pl-10 pr-4 py-3 text-base text-gray-700 bg-white/95 backdrop-blur-lg border-0 rounded-xl shadow-xl focus:ring-2 focus:ring-teal-300 transition-all duration-300"
-                  />
-                </div>
-              </div>
+            <div className="max-w-2xl mx-auto mb-10">
+              {/* Corrected logic for Usage Limit Display/Alert */}
+              
+              {/* End of Corrected logic */}
 
-              <button
-                onClick={handleCrawl}
-                disabled={loading}
-                className="px-6 py-3 text-base font-semibold text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 rounded-xl shadow-xl relative overflow-hidden group transition-all duration-300 transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                {loading ? (
-                  <>
-                    <span className="animate-spin inline-block mr-2">⏳</span>
-                    <span className="relative z-10">Analyzing...</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="mr-2 relative z-10">🔎</span>
-                    <span className="relative z-10">Analyze</span>
-                  </>
-                )}
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3 relative">
+                <div className="relative flex-1 group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-400 to-cyan-400 rounded-xl blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-600 text-base z-10">
+                      🔗
+                    </span>
+                    <input
+                      type="url"
+                      placeholder="https://example.com"
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      disabled={loading || hasReachedLimit}
+                      className="w-full pl-10 pr-4 py-3 text-base text-gray-700 bg-white/95 backdrop-blur-lg border-0 rounded-xl shadow-xl focus:ring-2 focus:ring-teal-300 transition-all duration-300 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleCrawl}
+                  disabled={isDisabled}
+                  className="px-6 py-3 text-base font-semibold text-white bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 rounded-xl shadow-xl relative overflow-hidden group transition-all duration-300 transform hover:scale-105 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                  {loading ? (
+                    <>
+                      <span className="animate-spin inline-block mr-2">⏳</span>
+                      <span className="relative z-10">Analyzing...</span>
+                    </>
+                  ) : hasReachedLimit ? (
+                    <>
+                      <span className="mr-2 relative z-10">⚠️</span>
+                      <span className="relative z-10">Limit Reached</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="mr-2 relative z-10">🔎</span>
+                      <span className="relative z-10">Analyze</span>
+                    </>
+                  )}
+                </button>
+              </div>
+              
+              {/* Updated fallback message for when limit is reached */}
+              {hasReachedLimit && (
+                <p className="text-sm text-gray-500 mt-3 text-center">
+                  You've reached your monthly limit of {usageLimits?.limit} scans.{" "}
+                  <button 
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="text-teal-600 hover:text-teal-700 font-medium underline"
+                  >
+                    Upgrade your plan
+                  </button>{" "}
+                  to scan more websites.
+                </p>
+              )}
             </div>
 
+            {/* Rest of your component remains the same... */}
             {/* Empty Space Content */}
-            {!loading && !jsonResult && !error && (
+            {!loading && !jsonResult && !error && !hasReachedLimit && ( // Added !hasReachedLimit here
               <div className="max-w-4xl mx-auto mb-12">
                 <div className="text-center mb-8">
                   <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent mb-3">
@@ -456,14 +652,6 @@ export default function ScraperPage() {
                           {scrapeInfo.url}
                         </strong>
                       </p>
-                      {/* {scrapeInfo.reportId && (
-                      <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 bg-teal-50 border border-teal-200 rounded-lg">
-                        <span className="text-teal-600 text-xs">Report ID:</span>
-                        <code className="text-teal-800 text-xs font-mono bg-teal-100 px-2 py-1 rounded">
-                          {scrapeInfo.reportId}
-                        </code>
-                      </div>
-                    )} */}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -616,6 +804,51 @@ export default function ScraperPage() {
             )}
           </main>
         </div>
+
+        {/* Upgrade Plan Modal */}
+        {showUpgradeModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full">
+              <div className="text-center">
+                <span className="text-yellow-500 text-4xl mb-4">👑</span>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                  Upgrade Your Plan
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  You've reached your monthly limit of {usageLimits?.limit} website scans. 
+                  Upgrade to unlock more features and higher limits.
+                </p>
+                
+                <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                  <h4 className="font-semibold text-gray-800 mb-2">Current Plan Features</h4>
+                  <ul className="text-sm text-gray-600 space-y-1">
+                    <li>• {usageLimits?.limit || 10} website scans per month</li>
+                    <li>• Comprehensive keyword analysis</li>
+                    <li>• Search intent categorization</li>
+                  </ul>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowUpgradeModal(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
+                  >
+                    Maybe Later
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Redirect to pricing page
+                      window.location.href = "/pricing";
+                    }}
+                    className="flex-1 px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 text-white rounded-lg hover:from-teal-600 hover:to-emerald-600 transition"
+                  >
+                    View Plans
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <style jsx>{`
           @keyframes loading {

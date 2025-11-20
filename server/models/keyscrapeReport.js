@@ -124,4 +124,19 @@ keyScrapeReportSchema.statics.findByUser = function(userId, limit = 10) {
     .limit(limit);
 };
 
+// Static method to get all reports with pagination
+keyScrapeReportSchema.statics.getUserReports = function(userId, page = 1, limit = 10) {
+  const skip = (page - 1) * limit;
+  return this.find({ user: userId })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .select('reportId mainUrl domain totalPagesScraped totalKeywordsFound analysisType createdAt completedAt');
+};
+
+// Static method to count user reports
+keyScrapeReportSchema.statics.countUserReports = function(userId) {
+  return this.countDocuments({ user: userId });
+};
+
 module.exports = mongoose.model('KeyScrapeReport', keyScrapeReportSchema);

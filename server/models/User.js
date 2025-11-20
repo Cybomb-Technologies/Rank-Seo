@@ -1,3 +1,4 @@
+// models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
@@ -52,42 +53,85 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-     plan: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "PricingPlan",
-    default: null
-  },
-  planName: {
-    type: String,
-    default: "Free"
-  },
-  billingCycle: {
-    type: String,
-    enum: ["monthly", "annual", null],
-    default: null
-  },
-  subscriptionStatus: {
-    type: String,
-    enum: ["active", "inactive", "cancelled", "expired"],
-    default: "inactive"
-  },
-  planExpiry: {
-    type: Date,
-    default: null
-  },
-  maxAuditsPerMonth: {
-    type: Number,
-    default: 1 // Free tier limit
-  },
-  maxTrackedKeywords: {
-    type: Number,
-    default: 10 // Free tier limit
-  }
+    plan: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "PricingPlan",
+        default: null
+    },
+    planName: {
+        type: String,
+        default: "Free"
+    },
+    billingCycle: {
+        type: String,
+        enum: ["monthly", "annual", null],
+        default: null
+    },
+    subscriptionStatus: {
+        type: String,
+        enum: ["active", "inactive", "cancelled", "expired"],
+        default: "inactive"
+    },
+    planExpiry: {
+        type: Date,
+        default: null
+    },
+    
+    // Usage Tracking
+    auditsUsed: {
+        type: Number,
+        default: 0
+    },
+    keywordReportsUsed: {
+        type: Number,
+        default: 0
+    },
+    businessNamesUsed: {
+        type: Number,
+        default: 0
+    },
+    keywordChecksUsed: {
+        type: Number,
+        default: 0
+    },
+    keywordScrapesUsed: {
+        type: Number,
+        default: 0
+    },
+    
+    
+    // Limits (will be populated from plan)
+    maxAuditsPerMonth: {
+        type: Number,
+        default: 5
+    },
+    maxKeywordReportsPerMonth: {
+        type: Number,
+        default: 10
+    },
+    maxBusinessNamesPerMonth: {
+        type: Number,
+        default: 5
+    },
+    maxKeywordChecksPerMonth: {
+        type: Number,
+        default: 10
+    },
+    maxKeywordScrapesPerMonth: {
+        type: Number,
+        default: 5
+    },
+    
+    
+    // Reset tracking
+    lastUsageReset: {
+        type: Date,
+        default: Date.now
+    }
 }, {
-    timestamps: true // This adds createdAt and updatedAt fields
+    timestamps: true
 });
 
-// Remove the pre-save hook as password hashing is now handled in the controller.
 UserSchema.pre('save', async function(next) {
     if (!this.isModified('password') || !this.password) {
         return next();
@@ -98,5 +142,4 @@ UserSchema.pre('save', async function(next) {
 });
 
 const User = mongoose.model('User', UserSchema);
-
 module.exports = User;

@@ -4,7 +4,7 @@ export const exportUsersToCSV = (users: User[], filename: string = 'users-export
   const headers = [
     'Name',
     'Email', 
-    'Mobile',
+    'Phone',
     'Plan',
     'Status',
     'Last Login',
@@ -16,7 +16,7 @@ export const exportUsersToCSV = (users: User[], filename: string = 'users-export
   const csvData = users.map(user => [
     `"${user.name || 'N/A'}"`,
     `"${user.email || 'N/A'}"`,
-    `"${user.mobile || 'N/A'}"`,
+    `"${user.phone || 'N/A'}"`,
     `"${user.plan || 'Free'}"`,
     `"${user.isVerified ? 'Verified' : 'Pending'}"`,
     `"${user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}"`,

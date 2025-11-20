@@ -8,6 +8,10 @@ import {
   X,
   Search,
   ChevronDown,
+  History,
+  Clock,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 import Metatags from "../../../SEO/metatags";
 
@@ -98,6 +102,11 @@ interface KnowledgeBaseProps {
 
 interface QuickResourcesProps {
   onOpenModal: (type: string) => void;
+}
+
+interface MessageHistoryProps {
+  messages: any[];
+  isLoading: boolean;
 }
 
 // --- Mock UI Components ---
@@ -357,6 +366,119 @@ const faqItems: FAQItem[] = [
   },
 ];
 
+// --- Message History Component ---
+const MessageHistory = ({ messages, isLoading }: MessageHistoryProps) => {
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "resolved":
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case "in_progress":
+        return <Clock className="w-4 h-4 text-blue-500" />;
+      case "new":
+        return <AlertCircle className="w-4 h-4 text-orange-500" />;
+      default:
+        return <AlertCircle className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "urgent":
+        return "text-red-600 bg-red-50 border-red-200";
+      case "high":
+        return "text-orange-600 bg-orange-50 border-orange-200";
+      case "medium":
+        return "text-yellow-600 bg-yellow-50 border-yellow-200";
+      case "low":
+        return "text-green-600 bg-green-50 border-green-200";
+      default:
+        return "text-gray-600 bg-gray-50 border-gray-200";
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center text-blue-600 dark:text-blue-400">
+            <History className="w-5 h-5 mr-3" />
+            Message History
+          </CardTitle>
+          <CardDescription>
+            Loading your support messages...
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center py-8">
+          <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center text-blue-600 dark:text-blue-400">
+          <History className="w-5 h-5 mr-3" />
+          Message History
+        </CardTitle>
+        <CardDescription>
+          Your previous support requests and their status
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4 max-h-96 overflow-y-auto">
+        {messages.length === 0 ? (
+          <div className="text-center py-8">
+            <History className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            <p className="text-gray-500">No support messages yet.</p>
+            <p className="text-sm text-gray-400 mt-1">
+              Your support requests will appear here.
+            </p>
+          </div>
+        ) : (
+          messages.map((message, index) => (
+            <div
+              key={index}
+              className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
+            >
+              <div className="flex justify-between items-start mb-2">
+                <h4 className="font-medium text-foreground">{message.subject}</h4>
+                <div className="flex items-center space-x-2">
+                  {getStatusIcon(message.status)}
+                  <Badge variant="outline" className="text-xs capitalize">
+                    {message.status.replace('_', ' ')}
+                  </Badge>
+                </div>
+              </div>
+              
+              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                {message.message}
+              </p>
+              
+              <div className="flex justify-between items-center text-xs text-gray-500">
+                <div className="flex space-x-2">
+                  <Badge 
+                    variant="outline" 
+                    className={`capitalize ${getPriorityColor(message.priority)}`}
+                  >
+                    {message.priority}
+                  </Badge>
+                  <Badge variant="secondary" className="capitalize">
+                    {message.type}
+                  </Badge>
+                </div>
+                <span>
+                  {new Date(message.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          ))
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
 // --- Knowledge Base Component ---
 const KnowledgeBase = ({ onOpenModal }: KnowledgeBaseProps) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -492,29 +614,44 @@ const ContactForm = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
+    // Clear error when user starts typing
+    if (error) setError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Please log in to send a message");
+        setIsSubmitting(false);
+        return;
+      }
+
       const res = await fetch(`${API_BASE}/api/contact`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer " + localStorage.getItem("token"),
+          Authorization: "Bearer " + token,
         },
         body: JSON.stringify(formData),
       });
 
-      if (!res.ok) throw new Error("Failed to send");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send message");
+      }
 
       setSubmitted(true);
       setFormData({
@@ -523,9 +660,12 @@ const ContactForm = () => {
         priority: "medium",
         type: "technical",
       });
+      
+      // Refresh message history
+      window.dispatchEvent(new Event('refreshMessages'));
     } catch (err) {
       console.error(err);
-      alert("Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -573,6 +713,12 @@ const ContactForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+            {error}
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
@@ -754,6 +900,59 @@ export default function SupportPage() {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [modalTitle, setModalTitle] = useState<string>("");
   const [modalContent, setModalContent] = useState<ReactNode>(null);
+  const [messageHistory, setMessageHistory] = useState<any[]>([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState<boolean>(false);
+
+  // In the fetchMessageHistory function in page.tsx
+const fetchMessageHistory = async () => {
+  try {
+    setIsLoadingMessages(true);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setIsLoadingMessages(false);
+      return;
+    }
+
+    const res = await fetch(`${API_BASE}/api/contact/my-messages`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      setMessageHistory(data.messages || []);
+    } else if (res.status === 404) {
+      console.log("Messages endpoint not found - this is normal for new installations");
+      setMessageHistory([]);
+    } else {
+      console.error("Failed to fetch messages:", res.status);
+      setMessageHistory([]);
+    }
+  } catch (error) {
+    console.error("Error fetching message history:", error);
+    setMessageHistory([]);
+  } finally {
+    setIsLoadingMessages(false);
+  }
+};
+
+  // Fetch message history on component mount and when refresh event is triggered
+  useEffect(() => {
+    fetchMessageHistory();
+
+    const handleRefreshMessages = () => {
+      fetchMessageHistory();
+    };
+
+    window.addEventListener('refreshMessages', handleRefreshMessages);
+    
+    return () => {
+      window.removeEventListener('refreshMessages', handleRefreshMessages);
+    };
+  }, []);
 
   const handleOpenModal = useCallback((type: string) => {
     if (type === "documentation") {
@@ -789,15 +988,16 @@ export default function SupportPage() {
 
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Contact Form */}
+          {/* Left Column - Contact Form and Knowledge Base */}
           <div className="lg:col-span-2 space-y-8">
             <ContactForm />
             <KnowledgeBase onOpenModal={handleOpenModal} />
           </div>
 
-          {/* Right Column - Quick Resources */}
+          {/* Right Column - Quick Resources, Message History, and Support Status */}
           <div className="space-y-8">
             <QuickResources onOpenModal={handleOpenModal} />
+            <MessageHistory messages={messageHistory} isLoading={isLoadingMessages} />
 
             {/* Support Status */}
             <Card className="hover:shadow-xl transition-shadow duration-300">

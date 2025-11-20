@@ -4,16 +4,15 @@ import { useState, useEffect } from "react";
 import { GeneratorHeader, NameResults } from "./frontend";
 import { Building2, Zap, Target, Palette } from "lucide-react";
 
-
 interface BusinessName {
   name: string;
   style: string;
   tagline: string;
 }
 
-const N8N_WEBHOOK_URL =
-  "https://n8n.cybomb.com/webhook/Business-name-generator";
+const N8N_WEBHOOK_URL = "https://n8n.cybomb.com/webhook/Business-name-generator";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function BusinessNameGeneratorPage() {
   const [industry, setIndustry] = useState("");
   const [audience, setAudience] = useState("");
@@ -42,9 +41,7 @@ export default function BusinessNameGeneratorPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const saveNamesToDatabase = async (
-    namesToSave: BusinessName[]
-  ): Promise<boolean> => {
+  const saveNamesToDatabase = async (namesToSave: BusinessName[]): Promise<boolean> => {
     if (!namesToSave.length) return false;
 
     const token = getToken();
@@ -76,7 +73,6 @@ export default function BusinessNameGeneratorPage() {
 
       if (!saveResponse.ok) {
         if (saveResponse.status === 401) {
-          // Token expired or invalid
           localStorage.removeItem("token");
           window.location.href = "/login";
           return false;
@@ -104,30 +100,41 @@ export default function BusinessNameGeneratorPage() {
     setLoading(true);
     setNames([]);
 
+    const token = getToken();
+    if (!token) {
+      alert("Please log in to generate names.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch(N8N_WEBHOOK_URL, {
+      // Generate names through backend to check usage limits
+      const generateResponse = await fetch(`${API_BASE_URL}/api/business/generate`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ industry, audience, style }),
       });
 
-      if (!response.ok) throw new Error(`Request failed: ${response.status}`);
-
-      const responseData = await response.json();
-      let namesArray: any[] = [];
-
-      if (Array.isArray(responseData)) {
-        namesArray = responseData;
-      } else if (responseData.output) {
-        const outputString = responseData.output
-          .replace(/```json\n?|```/g, "")
-          .trim();
-        namesArray = JSON.parse(outputString);
-      } else {
-        throw new Error("Invalid response format");
+      if (!generateResponse.ok) {
+        if (generateResponse.status === 401) {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+          return;
+        }
+        if (generateResponse.status === 403) {
+          const errorData = await generateResponse.json();
+          alert(errorData.message || "Usage limit reached. Please upgrade your plan.");
+          return;
+        }
+        throw new Error(`Generation failed: ${generateResponse.status}`);
       }
 
-      const businessNames = namesArray.map((item: any) => ({
+      const responseData = await generateResponse.json();
+      
+      const businessNames = responseData.data.names.map((item: any) => ({
         name: item.name || "Unnamed",
         style: item.style || "General",
         tagline: item.tagline || "",
@@ -137,6 +144,7 @@ export default function BusinessNameGeneratorPage() {
 
       // Save to MongoDB in background (silently)
       saveNamesToDatabase(businessNames);
+
     } catch (err: any) {
       console.error("Generation failed:", err.message);
       alert("Name generation failed. Please try again.");
