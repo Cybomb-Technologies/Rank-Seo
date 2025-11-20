@@ -16,12 +16,17 @@ interface PricingPlan {
   monthlyUSD?: number;
   annualUSD?: number;
   maxAuditsPerMonth?: number;
-  maxTrackedKeywords?: number;
+  maxKeywordReportsPerMonth?: number;
+  maxBusinessNamesPerMonth?: number;
+  maxKeywordChecksPerMonth?: number;
+  maxKeywordScrapesPerMonth?: number;
   highlight?: boolean;
   custom?: boolean;
   features: Feature[];
   isActive?: boolean;
   sortOrder?: number;
+  includesTax?: boolean;
+  isFree?: boolean;
 }
 
 export default function AdminPricingPage() {
@@ -36,12 +41,17 @@ export default function AdminPricingPage() {
     monthlyUSD: undefined,
     annualUSD: undefined,
     maxAuditsPerMonth: undefined,
-    maxTrackedKeywords: undefined,
+    maxKeywordReportsPerMonth: undefined,
+    maxBusinessNamesPerMonth: undefined,
+    maxKeywordChecksPerMonth: undefined,
+    maxKeywordScrapesPerMonth: undefined,
     highlight: false,
     custom: false,
     features: [{ name: "", included: true }],
     isActive: true,
     sortOrder: 0,
+    includesTax: false,
+    isFree: false,
   });
 
   useEffect(() => {
@@ -107,6 +117,8 @@ export default function AdminPricingPage() {
     
     const plan: PricingPlan = {
       ...newPlan,
+      monthlyUSD: newPlan.isFree ? 0 : newPlan.monthlyUSD,
+      annualUSD: newPlan.isFree ? 0 : newPlan.annualUSD,
       features: newPlan.features.filter(f => f.name.trim() !== ""),
     };
 
@@ -117,19 +129,37 @@ export default function AdminPricingPage() {
       monthlyUSD: undefined,
       annualUSD: undefined,
       maxAuditsPerMonth: undefined,
-      maxTrackedKeywords: undefined,
+      maxKeywordReportsPerMonth: undefined,
+      maxBusinessNamesPerMonth: undefined,
+      maxKeywordChecksPerMonth: undefined,
+      maxKeywordScrapesPerMonth: undefined,
       highlight: false,
       custom: false,
       features: [{ name: "", included: true }],
       isActive: true,
       sortOrder: prevPlans.length,
+      includesTax: false,
+      isFree: false,
     });
   };
 
   const updatePlan = (index: number, field: keyof PricingPlan, value: any) => {
     setPlans(prevPlans => {
       const updatedPlans = [...prevPlans];
-      updatedPlans[index] = { ...updatedPlans[index], [field]: value };
+      
+      // If setting isFree to true, automatically set prices to 0
+      if (field === 'isFree' && value === true) {
+        updatedPlans[index] = { 
+          ...updatedPlans[index], 
+          [field]: value,
+          monthlyUSD: 0,
+          annualUSD: 0,
+          custom: false
+        };
+      } else {
+        updatedPlans[index] = { ...updatedPlans[index], [field]: value };
+      }
+      
       return updatedPlans;
     });
   };
@@ -178,8 +208,35 @@ export default function AdminPricingPage() {
     });
   };
 
-  const removePlan = (index: number) => {
-    setPlans(prevPlans => prevPlans.filter((_, i) => i !== index));
+  const removePlan = async (index: number, planId?: string) => {
+    if (planId) {
+      // This is an existing plan from the database, call API to delete
+      try {
+        const token = localStorage.getItem("adminToken");
+        const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        
+        const response = await fetch(`${API_BASE}/api/admin/pricing/${planId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          setPlans(prevPlans => prevPlans.filter((_, i) => i !== index));
+          setMessage({ type: 'success', text: 'Plan deleted successfully!' });
+          setTimeout(() => setMessage(null), 3000);
+        } else {
+          throw new Error("Failed to delete plan");
+        }
+      } catch (error) {
+        console.error("Error deleting plan:", error);
+        setMessage({ type: 'error', text: 'Failed to delete plan' });
+      }
+    } else {
+      // This is a newly added plan that hasn't been saved to database yet
+      setPlans(prevPlans => prevPlans.filter((_, i) => i !== index));
+    }
   };
 
   const addNewFeatureToNewPlan = () => {
@@ -301,6 +358,7 @@ export default function AdminPricingPage() {
                 value={newPlan.monthlyUSD || ""}
                 onChange={(e) => setNewPlan({ ...newPlan, monthlyUSD: e.target.value ? Number(e.target.value) : undefined })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                disabled={newPlan.isFree}
               />
             </div>
             <div>
@@ -311,6 +369,7 @@ export default function AdminPricingPage() {
                 value={newPlan.annualUSD || ""}
                 onChange={(e) => setNewPlan({ ...newPlan, annualUSD: e.target.value ? Number(e.target.value) : undefined })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                disabled={newPlan.isFree}
               />
             </div>
             <div>
@@ -324,12 +383,42 @@ export default function AdminPricingPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Max Keywords</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Max Keyword Reports</label>
+              <input
+                type="number"
+                placeholder="100"
+                value={newPlan.maxKeywordReportsPerMonth || ""}
+                onChange={(e) => setNewPlan({ ...newPlan, maxKeywordReportsPerMonth: e.target.value ? Number(e.target.value) : undefined })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Max Business Names</label>
+              <input
+                type="number"
+                placeholder="50"
+                value={newPlan.maxBusinessNamesPerMonth || ""}
+                onChange={(e) => setNewPlan({ ...newPlan, maxBusinessNamesPerMonth: e.target.value ? Number(e.target.value) : undefined })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Max Keyword Checks</label>
               <input
                 type="number"
                 placeholder="200"
-                value={newPlan.maxTrackedKeywords || ""}
-                onChange={(e) => setNewPlan({ ...newPlan, maxTrackedKeywords: e.target.value ? Number(e.target.value) : undefined })}
+                value={newPlan.maxKeywordChecksPerMonth || ""}
+                onChange={(e) => setNewPlan({ ...newPlan, maxKeywordChecksPerMonth: e.target.value ? Number(e.target.value) : undefined })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Max Keyword Scrapes</label>
+              <input
+                type="number"
+                placeholder="50"
+                value={newPlan.maxKeywordScrapesPerMonth || ""}
+                onChange={(e) => setNewPlan({ ...newPlan, maxKeywordScrapesPerMonth: e.target.value ? Number(e.target.value) : undefined })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
@@ -391,10 +480,34 @@ export default function AdminPricingPage() {
               <input
                 type="checkbox"
                 checked={newPlan.custom}
-                onChange={(e) => setNewPlan({ ...newPlan, custom: e.target.checked })}
+                onChange={(e) => setNewPlan({ ...newPlan, custom: e.target.checked, isFree: e.target.checked ? false : newPlan.isFree })}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <span className="text-sm font-medium text-gray-700">Custom Pricing</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={newPlan.isFree}
+                onChange={(e) => setNewPlan({ 
+                  ...newPlan, 
+                  isFree: e.target.checked,
+                  monthlyUSD: e.target.checked ? 0 : newPlan.monthlyUSD,
+                  annualUSD: e.target.checked ? 0 : newPlan.annualUSD,
+                  custom: e.target.checked ? false : newPlan.custom
+                })}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium text-gray-700">Free Plan</span>
+            </label>
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={newPlan.includesTax}
+                onChange={(e) => setNewPlan({ ...newPlan, includesTax: e.target.checked })}
+                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <span className="text-sm font-medium text-gray-700">Includes Tax</span>
             </label>
           </div>
           
@@ -424,16 +537,28 @@ export default function AdminPricingPage() {
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">{plan.name}</h3>
-                  {plan.highlight && (
-                    <span className="inline-block mt-1 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded">
-                      Most Popular
-                    </span>
-                  )}
-                  {plan.custom && (
-                    <span className="inline-block mt-1 ml-2 px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded">
-                      Custom Pricing
-                    </span>
-                  )}
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {plan.highlight && (
+                      <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded">
+                        Most Popular
+                      </span>
+                    )}
+                    {plan.custom && (
+                      <span className="inline-block px-2 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded">
+                        Custom Pricing
+                      </span>
+                    )}
+                    {plan.isFree && (
+                      <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
+                        Free Plan
+                      </span>
+                    )}
+                    {plan.includesTax && (
+                      <span className="inline-block px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded">
+                        Includes Tax
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   {plan._id && (
@@ -449,7 +574,7 @@ export default function AdminPricingPage() {
                     </button>
                   )}
                   <button
-                    onClick={() => removePlan(planIndex)}
+                    onClick={() => removePlan(planIndex, plan._id)}
                     className="px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
                   >
                     Remove
@@ -483,7 +608,7 @@ export default function AdminPricingPage() {
                     value={plan.monthlyUSD || ""}
                     onChange={(e) => updatePlan(planIndex, 'monthlyUSD', e.target.value ? Number(e.target.value) : undefined)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
-                    disabled={plan.custom}
+                    disabled={plan.custom || plan.isFree}
                   />
                 </div>
                 <div>
@@ -493,7 +618,7 @@ export default function AdminPricingPage() {
                     value={plan.annualUSD || ""}
                     onChange={(e) => updatePlan(planIndex, 'annualUSD', e.target.value ? Number(e.target.value) : undefined)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
-                    disabled={plan.custom}
+                    disabled={plan.custom || plan.isFree}
                   />
                 </div>
                 <div>
@@ -506,14 +631,42 @@ export default function AdminPricingPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Keywords</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Keyword Reports</label>
                   <input
                     type="number"
-                    value={plan.maxTrackedKeywords || ""}
-                    onChange={(e) => updatePlan(planIndex, 'maxTrackedKeywords', e.target.value ? Number(e.target.value) : undefined)}
+                    value={plan.maxKeywordReportsPerMonth || ""}
+                    onChange={(e) => updatePlan(planIndex, 'maxKeywordReportsPerMonth', e.target.value ? Number(e.target.value) : undefined)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Business Names</label>
+                  <input
+                    type="number"
+                    value={plan.maxBusinessNamesPerMonth || ""}
+                    onChange={(e) => updatePlan(planIndex, 'maxBusinessNamesPerMonth', e.target.value ? Number(e.target.value) : undefined)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Keyword Checks</label>
+                  <input
+                    type="number"
+                    value={plan.maxKeywordChecksPerMonth || ""}
+                    onChange={(e) => updatePlan(planIndex, 'maxKeywordChecksPerMonth', e.target.value ? Number(e.target.value) : undefined)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Max Keyword Scrapes</label>
+                  <input
+                    type="number"
+                    value={plan.maxKeywordScrapesPerMonth || ""}
+                    onChange={(e) => updatePlan(planIndex, 'maxKeywordScrapesPerMonth', e.target.value ? Number(e.target.value) : undefined)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
                 <div className="flex items-center">
                   <label className="flex items-center space-x-2">
                     <input
@@ -534,6 +687,28 @@ export default function AdminPricingPage() {
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <span className="text-sm font-medium text-gray-700">Custom Pricing</span>
+                  </label>
+                </div>
+                <div className="flex items-center">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={plan.isFree || false}
+                      onChange={(e) => updatePlan(planIndex, 'isFree', e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Free Plan</span>
+                  </label>
+                </div>
+                <div className="flex items-center">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={plan.includesTax || false}
+                      onChange={(e) => updatePlan(planIndex, 'includesTax', e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Includes Tax</span>
                   </label>
                 </div>
               </div>

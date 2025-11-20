@@ -1,4 +1,4 @@
-// app/pricing/page.tsx
+// app/pricing/page.tsx - Updated with free plan redirection and 4-column responsive design
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -22,9 +22,14 @@ interface PricingPlan {
   highlight?: boolean;
   custom?: boolean;
   maxAuditsPerMonth?: number;
-  maxTrackedKeywords?: number;
+  maxKeywordReportsPerMonth?: number;
+  maxBusinessNamesPerMonth?: number;
+  maxKeywordChecksPerMonth?: number;
+  maxKeywordScrapesPerMonth?: number;
   isActive?: boolean;
   sortOrder?: number;
+  includesTax?: boolean;
+  isFree?: boolean;
 }
 
 interface FAQItem {
@@ -37,6 +42,31 @@ interface ComparisonFeature {
   [key: string]: string | boolean | undefined;
 }
 
+interface UserSubscription {
+  planId: string;
+  status: string;
+  planName: string;
+  billingCycle: string;
+  subscriptionStatus: string;
+  autoRenewal?: boolean;
+}
+
+interface UserProfile {
+  name: string;
+  email: string;
+  mobile?: string;
+  planName: string;
+  billingCycle: string;
+  subscriptionStatus: string;
+  planExpiry: string;
+  maxAuditsPerMonth: number;
+  auditsUsed: number;
+  memberSince: string;
+  autoRenewal: boolean;
+  renewalStatus: string;
+  nextRenewalDate: string;
+}
+
 export default function PricingPage() {
   const router = useRouter();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("annual");
@@ -46,17 +76,20 @@ export default function PricingPage() {
   const [error, setError] = useState<string | null>(null);
   const [plans, setPlans] = useState<PricingPlan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPlan, setCurrentPlan] = useState<UserSubscription | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
   const exchangeRate = 83.5;
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   useEffect(() => {
     fetchPlans();
+    fetchCurrentSubscription();
   }, []);
 
   const fetchPlans = async () => {
     try {
       setLoading(true);
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const response = await fetch(`${API_BASE}/api/pricing/plans`);
       
       if (response.ok) {
@@ -64,9 +97,7 @@ export default function PricingPage() {
         const transformedPlans = data.plans.map((plan: PricingPlan) => ({
           ...plan,
           id: plan._id || plan.id,
-          features: plan.features
-            ?.filter((feature: Feature) => feature.included)
-            ?.map((feature: Feature) => feature.name) || []
+          features: plan.features || []
         }));
         setPlans(transformedPlans);
       } else {
@@ -78,6 +109,53 @@ export default function PricingPage() {
       setPlans([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCurrentSubscription = async () => {
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      if (!token) return;
+
+      // Fetch user profile data (same as billing page)
+      const userResponse = await fetch(`${API_BASE}/api/payments/user/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        setUserProfile(userData);
+        
+        // Set current plan from user profile
+        if (userData) {
+          setCurrentPlan({
+            planId: userData.planId || 'free',
+            planName: userData.planName || 'Free Tier',
+            status: userData.subscriptionStatus || 'inactive',
+            billingCycle: userData.billingCycle || 'monthly',
+            subscriptionStatus: userData.subscriptionStatus || 'inactive',
+            autoRenewal: userData.autoRenewal || false
+          });
+        }
+      } else {
+        // Fallback to subscription endpoint if profile fails
+        const subscriptionResponse = await fetch(`${API_BASE}/api/user/subscription`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (subscriptionResponse.ok) {
+          const data = await subscriptionResponse.json();
+          if (data.subscription) {
+            setCurrentPlan(data.subscription);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching subscription:", error);
     }
   };
 
@@ -116,10 +194,29 @@ export default function PricingPage() {
       return;
     }
 
+    // Check if plan is free
+    const targetPlan = plans.find(plan => plan._id === planId);
+    if (targetPlan?.isFree) {
+      // Redirect free plan to dashboard
+      router.push("/dashboard");
+      return;
+    }
+
+    // Check if user is already on this plan
+    if (currentPlan && currentPlan.planId === planId && currentPlan.status === 'active') {
+      setError("You are already subscribed to this plan");
+      return;
+    }
+
+    // Check if user is trying to downgrade to free plan
+    if (targetPlan?.isFree && currentPlan?.status === 'active') {
+      setError("Please contact support to downgrade to free plan");
+      return;
+    }
+
     try {
       setLoadingPlan(planId);
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
+      
       const body = {
         planId,
         billingCycle,
@@ -175,27 +272,7 @@ export default function PricingPage() {
   const getFeatureComparison = (): ComparisonFeature[] => {
     if (plans.length === 0) return [];
 
-    // Get all unique features across all plans
-    const allFeatures = new Set<string>();
-    plans.forEach(plan => {
-      plan.features.forEach(feature => {
-        if (typeof feature === 'string') {
-          allFeatures.add(feature);
-        }
-      });
-    });
-
-    // Convert to array and create comparison data
-    const comparisonData: ComparisonFeature[] = Array.from(allFeatures).map(feature => {
-      const comparisonRow: ComparisonFeature = { feature };
-      
-      plans.forEach(plan => {
-        const hasFeature = plan.features.includes(feature);
-        comparisonRow[plan.name.toLowerCase()] = hasFeature;
-      });
-      
-      return comparisonRow;
-    });
+    const comparisonData: ComparisonFeature[] = [];
 
     // Add pricing information
     const pricingRow: ComparisonFeature = { feature: 'Pricing' };
@@ -205,25 +282,53 @@ export default function PricingPage() {
         plan.custom
       );
     });
-    comparisonData.unshift(pricingRow);
+    comparisonData.push(pricingRow);
 
-    // Add audits per month
-    const auditsRow: ComparisonFeature = { feature: 'SEO Audits per Month' };
+    // Add tax information
+    const taxRow: ComparisonFeature = { feature: 'Includes Tax' };
     plans.forEach(plan => {
-      auditsRow[plan.name.toLowerCase()] = plan.maxAuditsPerMonth 
-        ? plan.maxAuditsPerMonth === 0 ? 'Unlimited' : plan.maxAuditsPerMonth.toString()
-        : 'Not specified';
+      taxRow[plan.name.toLowerCase()] = plan.includesTax || false;
     });
-    comparisonData.splice(1, 0, auditsRow);
+    comparisonData.push(taxRow);
 
-    // Add keyword tracking
-    const keywordsRow: ComparisonFeature = { feature: 'Keyword Tracking' };
-    plans.forEach(plan => {
-      keywordsRow[plan.name.toLowerCase()] = plan.maxTrackedKeywords 
-        ? plan.maxTrackedKeywords === 0 ? 'Unlimited' : `${plan.maxTrackedKeywords} keywords`
-        : 'Not specified';
+    // Add service limits
+    const services = [
+      { key: 'maxAuditsPerMonth', label: 'SEO Audits per Month' },
+      { key: 'maxKeywordReportsPerMonth', label: 'Keyword Reports per Month' },
+      { key: 'maxBusinessNamesPerMonth', label: 'Business Name Checks per Month' },
+      { key: 'maxKeywordChecksPerMonth', label: 'Keyword Checks per Month' },
+      { key: 'maxKeywordScrapesPerMonth', label: 'Keyword Scrapes per Month' }
+    ];
+
+    services.forEach(service => {
+      const row: ComparisonFeature = { feature: service.label };
+      plans.forEach(plan => {
+        const value = plan[service.key as keyof PricingPlan];
+        row[plan.name.toLowerCase()] = value 
+          ? value === 0 ? 'Unlimited' : value.toString()
+          : 'Not included';
+      });
+      comparisonData.push(row);
     });
-    comparisonData.splice(2, 0, keywordsRow);
+
+    // Add included features
+    const allFeatures = new Set<string>();
+    plans.forEach(plan => {
+      plan.features.forEach(feature => {
+        if (feature.included && feature.name.trim()) {
+          allFeatures.add(feature.name);
+        }
+      });
+    });
+
+    Array.from(allFeatures).forEach(feature => {
+      const row: ComparisonFeature = { feature };
+      plans.forEach(plan => {
+        const hasFeature = plan.features.some(f => f.name === feature && f.included);
+        row[plan.name.toLowerCase()] = hasFeature;
+      });
+      comparisonData.push(row);
+    });
 
     return comparisonData;
   };
@@ -235,7 +340,7 @@ export default function PricingPage() {
     },
     {
       question: "Can I change plans anytime?",
-      answer: "Yes, you can upgrade or downgrade your plan at any time. When upgrading, the new rate will apply immediately. When downgrading, the change will take effect at the end of your billing cycle.",
+      answer: "Yes, you can upgrade your plan at any time. When upgrading, the new rate will apply immediately. For downgrades, please contact our support team.",
     },
     {
       question: "Do you offer discounts for annual billing?",
@@ -247,11 +352,15 @@ export default function PricingPage() {
     },
     {
       question: "Is there a free trial available?",
-      answer: "Yes, we offer a 14-day free trial for the Professional plan. No credit card required to start your trial.",
+      answer: "Yes, we offer a free tier with limited features. No credit card required to get started.",
     },
     {
       question: `Do you support ${currency === "INR" ? "Indian Rupee (INR)" : "multiple currency"} payments?`,
       answer: `Yes! We support ${currency === "INR" ? "payments in Indian Rupees (INR) including UPI, Net Banking, and credit/debit cards" : "multiple currencies including USD and INR. You can switch between currencies using the toggle above."}`,
+    },
+    {
+      question: "Are taxes included in the price?",
+      answer: "For plans marked with 'Includes Tax', all applicable taxes are included in the displayed price. For other plans, taxes will be calculated during checkout based on your location.",
     },
   ];
 
@@ -264,6 +373,9 @@ export default function PricingPage() {
   };
 
   const featureComparison = getFeatureComparison();
+
+  // Determine if user has active subscription
+  const hasActiveSubscription = currentPlan?.status === 'active' && currentPlan.planName !== 'Free Tier';
 
   if (loading) {
     return (
@@ -286,13 +398,30 @@ export default function PricingPage() {
             background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%)'
           }}
         >
-          <div className="container mx-auto px-4 max-w-6xl">
+          <div className="container mx-auto px-4 max-w-7xl">
             <h1 className="text-4xl font-bold text-gray-900 mb-4 mt-10">
               AI-Powered SEO Audit Pricing
             </h1>
             <p className="text-xl text-gray-600 mb-8">
               Choose the plan that works best for your business needs
             </p>
+
+            {/* Current Plan Badge */}
+            {currentPlan && (
+              <div className="mb-6">
+                <div className="inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium">
+                  <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Current Plan: {currentPlan.planName} 
+                  {hasActiveSubscription && currentPlan.autoRenewal && (
+                    <span className="ml-2 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                      Auto-renewal
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
 
             {error && (
               <div 
@@ -359,71 +488,100 @@ export default function PricingPage() {
 
         {/* Pricing Plans */}
         <section className="py-20">
-          <div className="container mx-auto px-4 max-w-6xl">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="container mx-auto px-4 max-w-7xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {plans.length > 0 ? (
                 plans.map((plan) => (
                   <div
                     key={plan._id}
-                    className={`relative bg-white rounded-xl border-2 p-8 flex flex-col transition-all duration-300 hover:shadow-xl ${
+                    className={`relative bg-white rounded-xl border-2 p-6 flex flex-col transition-all duration-300 hover:shadow-xl h-full ${
                       plan.highlight 
-                        ? "border-blue-500 scale-105 shadow-lg" 
+                        ? "border-blue-500 shadow-lg" 
                         : "border-gray-200 shadow-md"
+                    } ${
+                      currentPlan && currentPlan.planId === plan._id 
+                        ? "ring-4 ring-green-500 ring-opacity-50" 
+                        : ""
                     }`}
                   >
-                    {plan.highlight && (
-                      <div className="absolute -top-3 right-6 bg-blue-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                        Most Popular
-                      </div>
-                    )}
+                    {/* Plan Badges */}
+                    <div className="absolute -top-3 left-0 right-0 flex justify-center gap-2">
+                      {plan.highlight && (
+                        <div className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                          Most Popular
+                        </div>
+                      )}
+                      {currentPlan && currentPlan.planId === plan._id && (
+                        <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center">
+                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          Current
+                        </div>
+                      )}
+                    </div>
 
-                    <div className="text-center mb-6">
-                      <h3 className="text-2xl font-bold text-gray-900 mb-4">{plan.name}</h3>
-                      <div className="text-3xl font-bold text-gray-900 mb-2">
+                    <div className="text-center mb-4">
+                      <h3 className="text-xl font-bold text-gray-900 mb-3">{plan.name}</h3>
+                      <div className="text-2xl font-bold text-gray-900 mb-2">
                         {formatPrice(
                           billingCycle === "annual" ? plan.annualUSD : plan.monthlyUSD,
                           plan.custom
                         )}
                       </div>
-                      <p className="text-gray-600 text-sm mb-2">
+                      <p className="text-gray-600 text-xs mb-2">
                         {formatPriceDescription(
                           billingCycle === "annual" ? plan.annualUSD : plan.monthlyUSD
                         )}
                       </p>
-                      <p className="text-gray-700">{plan.description}</p>
-                    </div>
-
-                    <ul className="space-y-3 mb-8 flex-grow">
-                      {plan.features.map((feature, index) => (
-                        <li key={index} className="flex items-start">
-                          <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      {plan.includesTax && (
+                        <div className="inline-flex items-center bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium mb-2">
+                          <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                           </svg>
-                          <span className="text-gray-700">{feature}</span>
+                          Includes Tax
+                        </div>
+                      )}
+                      <p className="text-gray-700 text-sm">{plan.description}</p>
+                    </div>
+
+                    <ul className="space-y-2 mb-6 flex-grow">
+                      {plan.features
+                        .filter(feature => feature.included)
+                        .map((feature, index) => (
+                        <li key={index} className="flex items-start">
+                          <svg className="w-4 h-4 text-green-500 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          <span className="text-gray-700 text-sm">{feature.name}</span>
                         </li>
                       ))}
                     </ul>
 
                     <button
-                      className={`w-full py-4 px-6 rounded-lg font-semibold text-white transition-colors duration-200 ${
-                        plan.highlight 
-                          ? "bg-blue-500 hover:bg-blue-600" 
-                          : "bg-gray-600 hover:bg-gray-700"
+                      className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors duration-200 mt-auto ${
+                        currentPlan && currentPlan.planId === plan._id && currentPlan.status === 'active'
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : plan.highlight 
+                            ? "bg-blue-500 hover:bg-blue-600" 
+                            : "bg-gray-600 hover:bg-gray-700"
                       } disabled:opacity-50 disabled:cursor-not-allowed`}
                       onClick={() => handleSubscribe(plan._id)}
-                      disabled={loadingPlan === plan._id}
+                      disabled={loadingPlan === plan._id || (currentPlan && currentPlan.planId === plan._id && currentPlan.status === 'active')}
                     >
                       {loadingPlan === plan._id 
                         ? "Redirecting..." 
-                        : plan.custom 
-                          ? "Contact Sales" 
-                          : "Get Started"
+                        : currentPlan && currentPlan.planId === plan._id && currentPlan.status === 'active'
+                          ? "Current Plan"
+                          : plan.custom 
+                            ? "Contact Sales" 
+                            : plan.isFree ? "Get Started Free" : "Get Started"
                       }
                     </button>
                   </div>
                 ))
               ) : (
-                <div className="col-span-3 text-center py-12">
+                <div className="col-span-4 text-center py-12">
                   <p className="text-xl text-gray-600">
                     No pricing plans available at the moment. Please check back later.
                   </p>
@@ -436,46 +594,53 @@ export default function PricingPage() {
         {/* Dynamic Feature Comparison Table */}
         {plans.length > 0 && (
           <section className="py-20 bg-gray-50">
-            <div className="container mx-auto px-4 max-w-6xl">
+            <div className="container mx-auto px-4 max-w-7xl">
               <h2 className="text-3xl font-bold text-center text-blue-900 mb-12">
                 Compare Plans
               </h2>
               <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                <div className="grid" style={{ gridTemplateColumns: `2fr repeat(${plans.length}, 1fr)` }}>
-                  <div className="p-4 bg-blue-500 text-white font-semibold">Features</div>
-                  {plans.map((plan) => (
-                    <div key={plan._id} className="p-4 bg-blue-500 text-white font-semibold text-center">
-                      {plan.name}
-                    </div>
-                  ))}
-
-                  {featureComparison.map((item, index) => (
-                    <React.Fragment key={index}>
-                      <div className={`p-4 font-medium ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} border-b border-gray-200`}>
-                        {item.feature}
+                <div className="overflow-x-auto">
+                  <div className="grid min-w-[800px]" style={{ gridTemplateColumns: `2fr repeat(${plans.length}, 1fr)` }}>
+                    <div className="p-4 bg-blue-500 text-white font-semibold">Features</div>
+                    {plans.map((plan) => (
+                      <div key={plan._id} className="p-4 bg-blue-500 text-white font-semibold text-center">
+                        {plan.name}
+                        {currentPlan && currentPlan.planId === plan._id && (
+                          <div className="text-xs bg-green-500 text-white px-2 py-1 rounded-full mt-1 inline-block">
+                            Your Plan
+                          </div>
+                        )}
                       </div>
-                      {plans.map((plan) => (
-                        <div 
-                          key={`${plan._id}-${index}`} 
-                          className={`p-4 text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} border-b border-gray-200`}
-                        >
-                          {typeof item[plan.name.toLowerCase()] === "boolean" ? (
-                            item[plan.name.toLowerCase()] ? (
-                              <svg className="w-6 h-6 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                              </svg>
-                            ) : (
-                              <svg className="w-6 h-6 text-red-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                              </svg>
-                            )
-                          ) : (
-                            item[plan.name.toLowerCase()]
-                          )}
+                    ))}
+
+                    {featureComparison.map((item, index) => (
+                      <React.Fragment key={index}>
+                        <div className={`p-4 font-medium ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} border-b border-gray-200`}>
+                          {item.feature}
                         </div>
-                      ))}
-                    </React.Fragment>
-                  ))}
+                        {plans.map((plan) => (
+                          <div 
+                            key={`${plan._id}-${index}`} 
+                            className={`p-4 text-center ${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'} border-b border-gray-200`}
+                          >
+                            {typeof item[plan.name.toLowerCase()] === "boolean" ? (
+                              item[plan.name.toLowerCase()] ? (
+                                <svg className="w-5 h-5 text-green-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              ) : (
+                                <svg className="w-5 h-5 text-red-500 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                              )
+                            ) : (
+                              <span className="text-sm">{item[plan.name.toLowerCase()]}</span>
+                            )}
+                          </div>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

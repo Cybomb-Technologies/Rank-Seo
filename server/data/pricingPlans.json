@@ -6,7 +6,7 @@
     "monthlyUSD": 19,
     "annualUSD": 15,
     "maxAuditsPerMonth": 5,
-    "maxTrackedKeywords": 50,
+
     "highlight": false,
     "custom": false,
     "features": [

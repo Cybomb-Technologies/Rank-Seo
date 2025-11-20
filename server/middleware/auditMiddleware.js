@@ -16,7 +16,6 @@ const getPlanLimits = async (planId) => {
         maxBusinessNamesPerMonth: 5,
         maxKeywordChecksPerMonth: 10,
         maxKeywordScrapesPerMonth: 5,
-        
         label: "Free",
       };
     }
@@ -27,7 +26,7 @@ const getPlanLimits = async (planId) => {
       maxBusinessNamesPerMonth: plan.maxBusinessNamesPerMonth || 5,
       maxKeywordChecksPerMonth: plan.maxKeywordChecksPerMonth || 10,
       maxKeywordScrapesPerMonth: plan.maxKeywordScrapesPerMonth || 5,
-      
+
       label: plan.name || "Free",
       planId: plan._id,
     };
@@ -39,7 +38,6 @@ const getPlanLimits = async (planId) => {
       maxBusinessNamesPerMonth: 5,
       maxKeywordChecksPerMonth: 10,
       maxKeywordScrapesPerMonth: 5,
-     
       label: "Free",
     };
   }
@@ -82,7 +80,7 @@ const verifyUser = async (req, res, next) => {
       maxBusinessNamesPerMonth: limits.maxBusinessNamesPerMonth,
       maxKeywordChecksPerMonth: limits.maxKeywordChecksPerMonth,
       maxKeywordScrapesPerMonth: limits.maxKeywordScrapesPerMonth,
-      
+
     });
 
     // Attach everything onto req.user
@@ -100,7 +98,6 @@ const verifyUser = async (req, res, next) => {
       businessNamesUsed: user.businessNamesUsed || 0,
       keywordChecksUsed: user.keywordChecksUsed || 0,
       keywordScrapesUsed: user.keywordScrapesUsed || 0,
-     
     };
 
     next();

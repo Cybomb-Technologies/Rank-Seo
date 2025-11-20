@@ -3,7 +3,7 @@ const axios = require("axios");
 const PricingPlan = require("../models/PricingPlan");
 const User = require("../models/User");
 const Payment = require("../models/Payment");
-const PDFDocument = require("pdfkit");
+const { jsPDF } = require("jspdf");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
@@ -21,6 +21,9 @@ const emailTransporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASS,
   },
 });
+
+// Track email sending to prevent duplicates
+const emailSentTracker = new Set();
 
 // Load pricing plans from MongoDB
 const getPricingPlans = async () => {
@@ -123,7 +126,7 @@ const calculateExpiryDate = (billingCycle) => {
  * Format currency for display
  */
 const formatCurrency = (amount, currency) => {
-  const symbol = currency === 'INR' ? 'INR' : 'USD';
+  const symbol = currency === 'INR' ? '₹' : '$';
   
   const formattedAmount = new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
@@ -134,10 +137,86 @@ const formatCurrency = (amount, currency) => {
 };
 
 /**
- * Send invoice email to user
+ * Get plan features for display - properly extract feature names
+ */
+const getPlanFeatures = (plan) => {
+  const features = [];
+  
+  // Add features array from plan - properly extract names
+  if (plan && plan.features && Array.isArray(plan.features)) {
+    plan.features.forEach(feature => {
+      if (typeof feature === 'string') {
+        features.push(feature);
+      } else if (feature && typeof feature === 'object' && feature.name) {
+        features.push(feature.name);
+      } else if (feature && typeof feature === 'object' && feature.included !== false) {
+        // Try to find any string property that might contain the feature name
+        const featureName = Object.values(feature).find(val => typeof val === 'string' && val.length > 0);
+        if (featureName && !featureName.includes('ObjectId')) {
+          features.push(featureName);
+        }
+      }
+    });
+  }
+  
+  // Add usage limits as features
+  if (plan && plan.maxAuditsPerMonth > 0) {
+    features.push(`${plan.maxAuditsPerMonth} Website Audits per month`);
+  }
+  
+  if (plan && plan.maxKeywordReportsPerMonth > 0) {
+    features.push(`${plan.maxKeywordReportsPerMonth} Keyword Reports per month`);
+  }
+  
+  if (plan && plan.maxBusinessNamesPerMonth > 0) {
+    features.push(`${plan.maxBusinessNamesPerMonth} Business Name Generations per month`);
+  }
+  
+  if (plan && plan.maxKeywordChecksPerMonth > 0) {
+    features.push(`${plan.maxKeywordChecksPerMonth} Keyword Checks per month`);
+  }
+  
+  if (plan && plan.maxKeywordScrapesPerMonth > 0) {
+    features.push(`${plan.maxKeywordScrapesPerMonth} Keyword Scrapes per month`);
+  }
+  
+  // Add billing cycle info
+  if (plan) {
+    features.push(`${plan.custom ? 'Custom' : 'Standard'} Billing`);
+    
+    // Add support info based on plan
+    if (plan.name && plan.name.toLowerCase().includes('enterprise')) {
+      features.push('Priority Support & Dedicated Account Manager');
+    } else if (plan.name && plan.name.toLowerCase().includes('pro') || plan.name && plan.name.toLowerCase().includes('premium')) {
+      features.push('Priority Email & Chat Support');
+    } else {
+      features.push('Standard Email Support');
+    }
+  }
+  
+  return features;
+};
+
+/**
+ * Send invoice email to user (with duplicate prevention)
  */
 const sendInvoiceEmail = async (user, payment, pdfBuffer) => {
   try {
+    // Prevent duplicate email sending
+    const emailKey = `${payment.transactionId}_${user.email}`;
+    if (emailSentTracker.has(emailKey)) {
+      console.log(`Invoice email already sent for ${emailKey}, skipping...`);
+      return true;
+    }
+    
+    emailSentTracker.add(emailKey);
+    
+    // Clean up old entries from tracker (prevent memory leaks)
+    if (emailSentTracker.size > 1000) {
+      const firstKey = emailSentTracker.values().next().value;
+      emailSentTracker.delete(firstKey);
+    }
+
     const { netAmount, taxAmount, totalAmount } = calculateTaxAndNetAmount(payment.amount);
     
     const netAmountFormatted = formatCurrency(netAmount, payment.currency);
@@ -210,6 +289,9 @@ const sendInvoiceEmail = async (user, payment, pdfBuffer) => {
     return true;
   } catch (error) {
     console.error("Error sending invoice email:", error);
+    // Remove from tracker on failure so it can be retried
+    const emailKey = `${payment.transactionId}_${user.email}`;
+    emailSentTracker.delete(emailKey);
     return false;
   }
 };
@@ -369,19 +451,24 @@ const verifyPayment = async (req, res) => {
           subscriptionStatus: "active",
           planExpiry: paymentRecord.expiryDate,
           maxAuditsPerMonth: plan?.maxAuditsPerMonth || 0,
-          maxTrackedKeywords: plan?.maxTrackedKeywords || 0,
+          maxKeywordReportsPerMonth: plan?.maxKeywordReportsPerMonth || 0,
+          maxBusinessNamesPerMonth: plan?.maxBusinessNamesPerMonth || 0,
+          maxKeywordChecksPerMonth: plan?.maxKeywordChecksPerMonth || 0,
+          maxKeywordScrapesPerMonth: plan?.maxKeywordScrapesPerMonth || 0,
         });
 
         console.log("Payment verified and user plan updated for order:", orderId);
 
-        // Generate and send invoice email
+        // Generate and send invoice email - FIXED: Don't skip email in verifyPayment
         try {
           const user = await User.findById(userId);
-          const pdfBuffer = await generateInvoicePDFBuffer(user, paymentRecord);
+          const plan = await PricingPlan.findById(paymentRecord.planId);
+          const pdfBuffer = await generateInvoicePDFBuffer(user, paymentRecord, plan);
           await sendInvoiceEmail(user, paymentRecord, pdfBuffer);
+          console.log("Invoice email sent via verifyPayment for order:", orderId);
         } catch (emailError) {
-          console.error("Failed to send invoice email:", emailError);
-          // Don't fail the payment verification if email fails
+          console.error("Failed to send invoice email via verifyPayment:", emailError);
+          // Don't fail the whole request if email fails
         }
       }
 
@@ -455,10 +542,12 @@ const handlePaymentWebhook = async (req, res) => {
   try {
     const { data, event } = req.body;
     
+    console.log("Payment webhook received:", { event, data: data?.orderId });
+    
     if (event === "PAYMENT_SUCCESS_WEBHOOK") {
       const { orderId, orderAmount, paymentMode, referenceId } = data;
       
-      console.log("Payment webhook received:", { orderId, orderAmount });
+      console.log("Payment success webhook processing:", { orderId, orderAmount });
 
       // Update payment record
       const paymentRecord = await Payment.findOne({ transactionId: orderId });
@@ -479,26 +568,34 @@ const handlePaymentWebhook = async (req, res) => {
           subscriptionStatus: "active",
           planExpiry: paymentRecord.expiryDate,
           maxAuditsPerMonth: plan?.maxAuditsPerMonth || 0,
-          maxTrackedKeywords: plan?.maxTrackedKeywords || 0,
+          maxKeywordReportsPerMonth: plan?.maxKeywordReportsPerMonth || 0,
+          maxBusinessNamesPerMonth: plan?.maxBusinessNamesPerMonth || 0,
+          maxKeywordChecksPerMonth: plan?.maxKeywordChecksPerMonth || 0,
+          maxKeywordScrapesPerMonth: plan?.maxKeywordScrapesPerMonth || 0,
         });
 
         console.log("User plan updated via webhook for order:", orderId);
 
-        // Generate and send invoice email via webhook too
+        // Generate and send invoice email via webhook (primary method)
         try {
           const user = await User.findById(paymentRecord.userId);
-          const pdfBuffer = await generateInvoicePDFBuffer(user, paymentRecord);
+          const pdfBuffer = await generateInvoicePDFBuffer(user, paymentRecord, plan);
           await sendInvoiceEmail(user, paymentRecord, pdfBuffer);
+          console.log("Invoice email sent via webhook for order:", orderId);
         } catch (emailError) {
           console.error("Failed to send invoice email via webhook:", emailError);
         }
+      } else {
+        console.log("Payment record not found for order:", orderId);
       }
+    } else {
+      console.log("Webhook event not handled:", event);
     }
 
     res.status(200).json({ success: true });
   } catch (error) {
     console.error("Webhook error:", error);
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, error: error.message });
   }
 };
 
@@ -725,6 +822,7 @@ const manualRenewalProcessing = async (req, res) => {
   }
 };
 
+// Update getUserProfile function to include all service limits:
 const getUserProfile = async (req, res) => {
   try {
     const userId = req.user?._id;
@@ -733,7 +831,7 @@ const getUserProfile = async (req, res) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    const user = await User.findById(userId).select('name email mobile planName billingCycle subscriptionStatus planExpiry maxAuditsPerMonth auditsUsed createdAt');
+    const user = await User.findById(userId).select('name email mobile planName billingCycle subscriptionStatus planExpiry maxAuditsPerMonth auditsUsed maxKeywordReportsPerMonth keywordReportsUsed maxBusinessNamesPerMonth businessNamesUsed maxKeywordChecksPerMonth keywordChecksUsed maxKeywordScrapesPerMonth keywordScrapesUsed createdAt');
 
     if (!user) {
       return res.status(404).json({ 
@@ -758,9 +856,15 @@ const getUserProfile = async (req, res) => {
       subscriptionStatus: user.subscriptionStatus,
       planExpiry: user.planExpiry,
       maxAuditsPerMonth: user.maxAuditsPerMonth || 0,
-      maxTrackedKeywords: user.maxTrackedKeywords || 0,
       auditsUsed: user.auditsUsed || 0,
-      
+      maxKeywordReportsPerMonth: user.maxKeywordReportsPerMonth || 0,
+      keywordReportsUsed: user.keywordReportsUsed || 0,
+      maxBusinessNamesPerMonth: user.maxBusinessNamesPerMonth || 0,
+      businessNamesUsed: user.businessNamesUsed || 0,
+      maxKeywordChecksPerMonth: user.maxKeywordChecksPerMonth || 0,
+      keywordChecksUsed: user.keywordChecksUsed || 0,
+      maxKeywordScrapesPerMonth: user.maxKeywordScrapesPerMonth || 0,
+      keywordScrapesUsed: user.keywordScrapesUsed || 0,
       memberSince: user.createdAt,
       // Auto-renewal info from payment
       autoRenewal: latestPayment?.autoRenewal || false,
@@ -808,22 +912,77 @@ const getBillingHistory = async (req, res) => {
   }
 };
 
-// --- PDF helpers and generators ---
+// --- jsPDF helpers and generators ---
 
-// Improved checkPageBreak (returns top margin when new page created)
+/**
+ * Check if we need a new page and add one if necessary
+ */
 const checkPageBreak = (doc, currentY, requiredSpace = 100) => {
-  const bottomLimit = doc.page.height - doc.page.margins.bottom;
+  const bottomLimit = doc.internal.pageSize.height - 50;
   if (currentY + requiredSpace > bottomLimit) {
     doc.addPage();
-    return doc.page.margins.top;
+    return 50;
   }
   return currentY;
 };
 
 /**
- * Generate PDF content (reusable for both download and email)
+ * Format currency for PDF display without symbols
  */
-const generateInvoicePDFContent = (doc, user, payment) => {
+const formatCurrencyForPDF = (amount, currency) => {
+  // Use Western numbering system for consistent display
+  const formattedAmount = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+  
+  return `${currency} ${formattedAmount}`;
+};
+
+/**
+ * Display features in two columns
+ */
+const displayFeaturesInTwoColumns = (doc, features, startX, startY, columnWidth, lineHeight) => {
+  let currentY = startY;
+  const middleX = startX + columnWidth;
+  
+  // Split features into two columns
+  const midIndex = Math.ceil(features.length / 2);
+  const leftColumnFeatures = features.slice(0, midIndex);
+  const rightColumnFeatures = features.slice(midIndex);
+  
+  // Find the maximum length between both columns to determine total height needed
+  const maxFeatures = Math.max(leftColumnFeatures.length, rightColumnFeatures.length);
+  
+  // Draw features in two columns
+  for (let i = 0; i < maxFeatures; i++) {
+    // Check if we need a new page
+    currentY = checkPageBreak(doc, currentY, lineHeight);
+    
+    // Left column feature
+    if (i < leftColumnFeatures.length) {
+      doc.setTextColor(30, 41, 59) // darkText
+         .setFontSize(9)
+         .setFont("helvetica", "normal")
+         .text(`• ${leftColumnFeatures[i]}`, startX, currentY);
+    }
+    
+    // Right column feature
+    if (i < rightColumnFeatures.length) {
+      doc.setTextColor(30, 41, 59) // darkText
+         .setFontSize(9)
+         .setFont("helvetica", "normal")
+         .text(`• ${rightColumnFeatures[i]}`, middleX, currentY);
+    }
+    
+    currentY += lineHeight;
+  }
+  
+  return currentY;
+};
+
+// Replace only generateInvoicePDFContent with this function
+const generateInvoicePDFContent = (doc, user, payment, plan) => {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -840,386 +999,334 @@ const generateInvoicePDFContent = (doc, user, payment) => {
     });
   };
 
-  // Calculate tax amounts
   const { netAmount, taxAmount, totalAmount } = calculateTaxAndNetAmount(payment.amount);
 
-  // Professional Color Scheme
-  const primaryColor = '#059669';
-  const secondaryColor = '#2563eb';
-  const darkText = '#1e293b';
-  const mediumText = '#475569';
-  const lightText = '#64748b';
-  const borderColor = '#e2e8f0';
-  const headerBg = '#f8fafc';
-  const successColor = '#059669';
+  // Colors
+  const primaryColor = [5, 150, 105];
+  const darkText = [30, 41, 59];
+  const mediumText = [71, 85, 105];
+  const lightText = [100, 116, 139];
+  const borderColor = [226, 232, 240];
+  const headerBg = [248, 250, 252];
+  const white = [255, 255, 255];
 
-  // Layout Constants
-  const startX = 50;
-  const endX = 545;
+  // Page/layout
+  const pageWidth = doc.internal.pageSize.width;
+  const pageHeight = doc.internal.pageSize.height;
+  const margin = 50;
+  const startX = margin;
+  const endX = pageWidth - margin;
   const contentWidth = endX - startX;
-  const pageHeight = doc.page.height;
 
-  // Start Y at top margin
-  let currentY = doc.page.margins.top;
+  let currentY = margin;
 
-  // Header
-  doc.rect(0, 0, doc.page.width, 120).fill(primaryColor);
+  // Header background
+  doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+  doc.rect(0, 0, pageWidth, 120, 'F');
 
-  // Company Info - Left Side
-  doc.fillColor('#ffffff')
-     .fontSize(16)
-     .font('Helvetica-Bold')
+  // Company name and tagline (left)
+  doc.setTextColor(white[0], white[1], white[2])
+     .setFontSize(16)
+     .setFont("helvetica", "bold")
      .text('RANKSEO', startX, 30);
 
-  doc.fillColor('#f8fafc')
-     .fontSize(8)
-     .font('Helvetica')
-     .text('Professional SEO Tools & Analytics Platform', startX, 50);
+  doc.setTextColor(248, 250, 252)
+     .setFontSize(8)
+     .setFont("helvetica", "normal")
+     .text('Professional SEO Tools & Analytics Platform', startX, 46);
 
-  // Company details - fixed separate text() calls to avoid syntax issues
-  let companyDetailY = 65;
-  doc.fillColor('#e2e8f0')
-     .fontSize(7)
-     .font('Helvetica')
+  // Company details (left)
+  let companyDetailY = 64;
+  doc.setTextColor(226, 232, 240)
+     .setFontSize(7)
      .text('Cybomb Technologies Pvt Ltd.', startX, companyDetailY);
 
-  doc.text(
-    'GSTIN: IN07AABCC1234D1Z2',
-    startX,
-    companyDetailY + 10
-  );
+  doc.text('GSTIN: IN07AABCC1234D1Z2', startX, companyDetailY + 9);
 
-  doc.text(
+  const addressLines = doc.splitTextToSize(
     'Prime Plaza No.54/1, 1st street, Sripuram colony, St. Thomas Mount, Chennai, Tamil Nadu - 600 016, India',
-    startX,
-    companyDetailY + 20,
-    { width: 250 }
+    contentWidth * 0.5 // limit address width
   );
+  doc.text(addressLines, startX, companyDetailY + 18);
 
-  // INVOICE Badge - Right Side
-  const invoiceBoxWidth = 180;
-  const invoiceBoxX = endX - invoiceBoxWidth;
-  const invoiceText = `INVOICE\n#${payment.transactionId}`;
-  doc.fillColor('#ffffff')
-     .fontSize(12)
-     .font('Helvetica-Bold')
-     .text(invoiceText, invoiceBoxX, 40, {
-       width: invoiceBoxWidth - 20,
-       align: 'right',
-       lineGap: 2
-     });
+  // INVOICE badge (right) — anchor to endX
+  const badgeX = endX;
+  doc.setTextColor(white[0], white[1], white[2])
+     .setFontSize(12)
+     .setFont("helvetica", "bold")
+     .text('INVOICE', badgeX, 40, { align: 'right' })
+     .setFontSize(10)
+     .text(`#${payment.transactionId}`, badgeX, 56, { align: 'right' });
 
+  // Start content below header
   currentY = 140;
 
-  // 2. BILLING INFORMATION SECTION
-  doc.fillColor(primaryColor)
-     .fontSize(11)
-     .font('Helvetica-Bold')
+  // BILL TO (left)
+  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2])
+     .setFontSize(11)
+     .setFont("helvetica", "bold")
      .text('BILL TO:', startX, currentY);
 
-  doc.fillColor(darkText)
-     .fontSize(10)
-     .font('Helvetica-Bold')
-     .text(user.name || 'Customer Name', startX, currentY + 15);
+  doc.setTextColor(darkText[0], darkText[1], darkText[2])
+     .setFontSize(10)
+     .setFont("helvetica", "bold")
+     .text(user.name || 'Customer Name', startX, currentY + 18);
 
-  doc.fillColor(mediumText)
-     .fontSize(9)
-     .font('Helvetica')
-     .text(user.email || 'customer@example.com', startX, currentY + 30);
+  doc.setTextColor(mediumText[0], mediumText[1], mediumText[2])
+     .setFontSize(9)
+     .setFont("helvetica", "normal")
+     .text(user.email || 'customer@example.com', startX, currentY + 34);
 
   if (user.phone) {
-    doc.text(user.phone, startX, currentY + 45);
+    doc.text(user.phone, startX, currentY + 50);
   }
 
-  // Invoice Details Card
-  const detailsCardWidth = 240;
+  // Invoice Details Card (right). keep it entirely to the right without overlapping.
+  const detailsCardWidth = Math.min(260, contentWidth * 0.45);
   const detailsCardX = endX - detailsCardWidth;
-  
-  doc.save()
-     .lineWidth(0.8)
-     .roundedRect(detailsCardX, currentY, detailsCardWidth, 90, 5)
-     .fillAndStroke(headerBg, borderColor)
-     .restore();
+  const detailsCardHeight = 100;
 
-  let detailY = currentY + 14;
-  const detailLabelWidth = 80;
+  doc.setDrawColor(borderColor[0], borderColor[1], borderColor[2])
+     .setFillColor(headerBg[0], headerBg[1], headerBg[2])
+     .roundedRect(detailsCardX, currentY - 8, detailsCardWidth, detailsCardHeight, 6, 6, 'FD');
 
-  const addDetailRow = (label, value, isBold = false, isMain = false) => {
-    doc.fillColor(mediumText)
-       .fontSize(8)
-       .font('Helvetica')
-       .text(label, detailsCardX + 10, detailY, { width: detailLabelWidth });
+  let detailY = currentY + 6;
 
-    doc.fillColor(isBold ? primaryColor : darkText)
-       .fontSize(isMain ? 9 : 8)
-       .font(isBold ? 'Helvetica-Bold' : 'Helvetica')
-       .text(value, detailsCardX + detailLabelWidth + 10, detailY, { 
-         width: detailsCardWidth - detailLabelWidth - 20,
-         align: 'right' 
-       });
-    
-    detailY += 12;
+  const addDetailRow = (label, value, isBold = false) => {
+    doc.setTextColor(mediumText[0], mediumText[1], mediumText[2])
+       .setFontSize(8)
+       .setFont("helvetica", "normal")
+       .text(label, detailsCardX + 10, detailY);
+
+    const textColor = isBold ? primaryColor : darkText;
+    doc.setTextColor(textColor[0], textColor[1], textColor[2])
+       .setFontSize(8)
+       .setFont("helvetica", isBold ? "bold" : "normal")
+       .text(value, detailsCardX + detailsCardWidth - 10, detailY, { align: 'right' });
+
+    detailY += 14;
   };
 
   addDetailRow('Invoice Date:', formatDate(payment.createdAt));
   addDetailRow('Due Date:', formatDate(payment.createdAt));
   addDetailRow('Status:', (payment.status || '').toUpperCase(), true);
   addDetailRow('Billing Cycle:', (payment.billingCycle || '').charAt(0).toUpperCase() + (payment.billingCycle || '').slice(1));
-  
   const serviceStart = new Date(payment.createdAt);
   const serviceEnd = new Date(payment.expiryDate);
   addDetailRow('Service Period:', `${formatShortDate(serviceStart)} to ${formatShortDate(serviceEnd)}`);
 
-  currentY += 110;
+  // Move currentY down beneath card and bill to area
+  currentY += Math.max(detailsCardHeight, 90) + 18;
 
-  // 3. ITEMS TABLE with Fixed Alignment
-  currentY = checkPageBreak(doc, currentY, 180);
+  // ITEMS TABLE
+  currentY = checkPageBreak(doc, currentY, 220);
   const tableTop = currentY;
 
-  // Table Header Background
-  doc.rect(startX, tableTop, contentWidth, 25)
-     .fill(primaryColor);
+  // Table header background
+  const headerHeight = 28;
+  doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
+     .rect(startX, tableTop, contentWidth, headerHeight, 'F');
 
-  // Column positions
-  const amountColWidth = 85;
-  const priceColWidth = 80;
-  const qtyColWidth = 40;
-  const tablePaddingX = 10;
-  const gap = 10;
+  // Column widths computed from contentWidth (responsive)
+  const colDescW = Math.round(contentWidth * 0.58);
+  const colQtyW = Math.round(contentWidth * 0.08);
+  const colPriceW = Math.round(contentWidth * 0.17);
+  const colAmountW = contentWidth - (colDescW + colQtyW + colPriceW);
 
-  const colAmountX = endX - tablePaddingX - amountColWidth;
-  const colPriceX = colAmountX - gap - priceColWidth;
-  const colQtyX = colPriceX - gap - qtyColWidth;
-  const colDescX = startX + tablePaddingX;
-  const descColWidth = colQtyX - colDescX - gap;
+  // Column X positions
+  const colDescX = startX + 10;
+  const colQtyX = startX + colDescW + 10;
+  const colPriceX = colQtyX + colQtyW + colPriceW - 6; // align right inside column
+  const colAmountX = startX + contentWidth - 10;
 
-  // Header Text
-  doc.fillColor('#ffffff')
-     .fontSize(10)
-     .font('Helvetica-Bold')
-     .text('DESCRIPTION', colDescX, tableTop + 7, { width: descColWidth })
-     .text('QTY', colQtyX, tableTop + 7, { width: qtyColWidth, align: 'center' })
-     .text('PRICE', colPriceX, tableTop + 7, { width: priceColWidth, align: 'right' })
-     .text('AMOUNT', colAmountX, tableTop + 7, { width: amountColWidth, align: 'right' });
+  // Header text — vertically center inside headerHeight
+  const headerTextY = tableTop + headerHeight / 2 + 5;
+  doc.setTextColor(white[0], white[1], white[2])
+     .setFontSize(10)
+     .setFont("helvetica", "bold")
+     .text('DESCRIPTION', colDescX, headerTextY)
+     .text('QTY', startX + colDescW + (colQtyW / 2), headerTextY, { align: 'center' })
+     .text('PRICE', colPriceX, headerTextY, { align: 'right' })
+     .text('AMOUNT', colAmountX, headerTextY, { align: 'right' });
 
-  // Item Row
-  const itemRowY = tableTop + 25;
-  const itemHeight = 42;
+  // Item row (single row)
+  const itemRowY = tableTop + headerHeight;
+  const itemHeight = 56;
 
-  doc.save()
-     .lineWidth(0.8)
-     .rect(startX, itemRowY, contentWidth, itemHeight)
-     .fillAndStroke('#ffffff', borderColor)
-     .restore();
+  doc.setDrawColor(borderColor[0], borderColor[1], borderColor[2])
+     .setFillColor(white[0], white[1], white[2])
+     .rect(startX, itemRowY, contentWidth, itemHeight, 'FD');
 
   const itemDescription = `${payment.planName} Subscription`;
   const itemDetails = `${(payment.billingCycle || '').charAt(0).toUpperCase() + (payment.billingCycle || '').slice(1)} billing cycle with full feature access`;
 
-  doc.fillColor(darkText)
-     .fontSize(11)
-     .font('Helvetica-Bold')
-     .text(itemDescription, colDescX, itemRowY + 6, { width: descColWidth });
+  // description text lines wrapping within desc column width
+  const descTextWidth = colDescW - 20;
+  doc.setTextColor(darkText[0], darkText[1], darkText[2])
+     .setFontSize(11)
+     .setFont("helvetica", "bold");
+  doc.text(doc.splitTextToSize(itemDescription, descTextWidth), colDescX, itemRowY + 16);
 
-  doc.fillColor(mediumText)
-     .fontSize(9)
-     .font('Helvetica')
-     .text(itemDetails, colDescX, itemRowY + 20, { width: descColWidth });
+  doc.setTextColor(mediumText[0], mediumText[1], mediumText[2])
+     .setFontSize(9)
+     .setFont("helvetica", "normal");
+  doc.text(doc.splitTextToSize(itemDetails, descTextWidth), colDescX, itemRowY + 34);
 
-  // Fixed numeric alignment using same X+width
-  const formattedNetAmount = formatCurrency(netAmount, payment.currency);
+  // Qty, Price and Amount — vertically centered in item row
+  const itemCenterY = itemRowY + itemHeight / 2 + 3;
+  doc.setTextColor(darkText[0], darkText[1], darkText[2])
+     .setFontSize(10)
+     .setFont("helvetica", "normal")
+     .text('1', startX + colDescW + (colQtyW / 2), itemCenterY, { align: 'center' });
 
-  doc.fillColor(darkText)
-     .fontSize(10)
-     .font('Helvetica')
-     .text('1', colQtyX, itemRowY + 14, { width: qtyColWidth, align: 'center' })
-     .text(formattedNetAmount, colPriceX, itemRowY + 14, { width: priceColWidth, align: 'right' })
-     .text(formattedNetAmount, colAmountX, itemRowY + 14, { width: amountColWidth, align: 'right' });
+  const priceDisplay = formatCurrencyForPDF(netAmount, payment.currency);
+  doc.text(priceDisplay, colPriceX, itemCenterY, { align: 'right' });
+  doc.text(priceDisplay, colAmountX, itemCenterY, { align: 'right' });
 
-  currentY = itemRowY + itemHeight + 30;
+  currentY = itemRowY + itemHeight + 24;
 
-  // 4. TOTALS SECTION with Proper Alignment and Tax Breakdown
+  // TOTALS SECTION (right aligned)
   currentY = checkPageBreak(doc, currentY, 140);
-  const totalsWidth = 220;
+  const totalsWidth = Math.min(260, contentWidth * 0.45);
   const totalsX = endX - totalsWidth;
+  const totalsHeight = 88;
 
-  doc.save()
-     .lineWidth(0.8)
-     .rect(totalsX, currentY, totalsWidth, 80)
-     .fillAndStroke('#ffffff', borderColor)
-     .restore();
+  doc.setDrawColor(borderColor[0], borderColor[1], borderColor[2])
+     .setFillColor(white[0], white[1], white[2])
+     .rect(totalsX, currentY, totalsWidth, totalsHeight, 'FD');
 
-  let totalY = currentY + 15;
+  let totalY = currentY + 14;
 
-  const addTotalLine = (label, value, isMain = false) => {
-    const labelWidth = 110;
-    
-    doc.fillColor(mediumText)
-       .fontSize(isMain ? 11 : 9)
-       .font(isMain ? 'Helvetica-Bold' : 'Helvetica')
-       .text(label, totalsX + 10, totalY, { width: labelWidth });
+  const addTotalLine = (label, amount, isMain = false) => {
+    const currencyDisplay = formatCurrencyForPDF(amount, payment.currency);
 
-    doc.fillColor(isMain ? primaryColor : darkText)
-       .fontSize(isMain ? 12 : 10)
-       .font(isMain ? 'Helvetica-Bold' : 'Helvetica')
-       .text(value, totalsX + labelWidth + 5, totalY, { 
-         width: totalsWidth - labelWidth - 15,
-         align: 'right' 
-       });
-    
+    doc.setTextColor(mediumText[0], mediumText[1], mediumText[2])
+       .setFontSize(isMain ? 10 : 9)
+       .setFont("helvetica", isMain ? "bold" : "normal")
+       .text(label, totalsX + 12, totalY);
+
+    const textColor = isMain ? primaryColor : darkText;
+    doc.setTextColor(textColor[0], textColor[1], textColor[2])
+       .setFontSize(isMain ? 12 : 10)
+       .setFont("helvetica", isMain ? "bold" : "normal")
+       .text(currencyDisplay, totalsX + totalsWidth - 12, totalY, { align: 'right' });
+
     totalY += isMain ? 22 : 16;
   };
 
-  addTotalLine('Subtotal:', formatCurrency(netAmount, payment.currency));
-  addTotalLine('GST (18%):', formatCurrency(taxAmount, payment.currency));
+  addTotalLine('Subtotal:', netAmount);
+  addTotalLine('GST (18%):', taxAmount);
 
-  // Separator
-  totalY += 4;
-  doc.moveTo(totalsX + 10, totalY)
-     .lineTo(totalsX + totalsWidth - 10, totalY)
-     .strokeColor(borderColor)
-     .lineWidth(0.8)
-     .stroke();
-  
-  totalY += 10;
+  // separator
+  doc.setDrawColor(borderColor[0], borderColor[1], borderColor[2])
+     .setLineWidth(0.5)
+     .line(totalsX + 10, totalY - 8, totalsX + totalsWidth - 10, totalY - 8);
+  totalY += 8;
 
-  // Total
-  addTotalLine('TOTAL PAID', formatCurrency(totalAmount, payment.currency), true);
+  addTotalLine('TOTAL PAID', totalAmount, true);
 
-  doc.fillColor(mediumText)
-     .fontSize(8)
-     .font('Helvetica')
-     .text('Paid via Credit Card / Online Payment', totalsX + 10, totalY + 4, {
-       width: totalsWidth - 20,
-       align: 'right'
-     });
+  // Fix alignment: match the right alignment of TOTAL PAID amount
+  doc.setTextColor(mediumText[0], mediumText[1], mediumText[2])
+    .setFontSize(8)
+    .setFont("helvetica", "normal")
+    .text(
+      'Paid via Credit Card / Online Payment',
+      totalsX + totalsWidth - 12,   // same right-edge position as amounts
+      totalY + 10,                  // add more spacing below TOTAL PAID
+      { align: 'right' }
+    );
 
-  currentY += 100;
+  currentY += totalsHeight + 26;
 
-  // 5. PLAN FEATURES SECTION - keep compact
-  const featuresSectionY = currentY;
-  if (featuresSectionY < pageHeight - 120) {
-    doc.fillColor(primaryColor)
-       .fontSize(12)
-       .font('Helvetica-Bold')
-       .text('PLAN FEATURES', startX, featuresSectionY);
-
-    const features = [
-      `• ${payment.planId?.maxAuditsPerMonth || 20} Website Audits per month`,
-      `• ${payment.planId?.maxTrackedKeywords || 200} Keyword Tracking`,
-      `• ${payment.billingCycle?.charAt(0).toUpperCase() + payment.billingCycle?.slice(1) || 'Monthly'} Billing`,
-      `• Priority Email & Chat Support`,
-    ];
-
-    let featureY = featuresSectionY + 20;
-    
-    features.forEach((feature) => {
-      doc.fillColor(darkText)
-         .fontSize(9)
-         .font('Helvetica')
-         .text(feature, startX, featureY, { width: contentWidth });
-      featureY += 14;
-    });
-
-    currentY = featureY + 20;
-  } else {
-    // If not enough space, push to next page
-    currentY = checkPageBreak(doc, currentY, 160);
-  }
-
-  // 6. FOOTER - ensure there is space for footer
+  // PLAN FEATURES - DYNAMIC FROM PLAN - IN TWO COLUMNS
   currentY = checkPageBreak(doc, currentY, 120);
-  const footerStartY = currentY;
 
-  doc.fillColor(primaryColor)
-     .fontSize(11)
-     .font('Helvetica-Bold')
-     .text(
-       'Thank You for Choosing RankSEO!',
-       startX,
-       footerStartY,
-       { width: contentWidth, align: 'center' }
-     );
+  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2])
+     .setFontSize(12)
+     .setFont("helvetica", "bold")
+     .text('PLAN FEATURES', startX, currentY);
 
-  doc.fillColor(mediumText)
-     .fontSize(9)
-     .font('Helvetica')
-     .text(
-       'Need assistance? Contact our support team:',
-       startX,
-       footerStartY + 20,
-       { width: contentWidth, align: 'center' }
-     );
-
-  doc.fillColor(primaryColor)
-     .fontSize(9)
-     .font('Helvetica-Bold')
-     .text(
-       'info@rankseo.com • +91 9715092104',
-       startX,
-       footerStartY + 35,
-       { width: contentWidth, align: 'center' }
-     );
-
-  // Legal text at the very bottom
-  const legalY = doc.page.height - 30;
+  // Get dynamic features from plan
+  const features = getPlanFeatures(plan || payment.planId);
   
-  doc.fillColor(lightText)
-     .fontSize(7)
-     .font('Helvetica')
-     .text(
-       'This is an electronically generated invoice and does not require a physical signature.',
-       startX,
-       legalY,
-       { align: 'center', width: contentWidth }
-     );
+  const featuresStartY = currentY + 18;
+  const columnWidth = contentWidth / 2;
+  const lineHeight = 14;
 
-  doc.text(
-    `Invoice ID: ${payment.transactionId} • Generated on ${new Date().toLocaleDateString()}`,
-    startX,
-    legalY + 12,
-    { align: 'center', width: contentWidth }
-  );
+  // Display features in two columns
+  currentY = displayFeaturesInTwoColumns(doc, features, startX, featuresStartY, columnWidth, lineHeight);
+
+  currentY += 18;
+
+  // FOOTER
+  currentY = checkPageBreak(doc, currentY, 80);
+
+  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2])
+     .setFontSize(11)
+     .setFont("helvetica", "bold")
+     .text('Thank You for Choosing RankSEO!', pageWidth / 2, currentY, { align: 'center' });
+
+  doc.setTextColor(mediumText[0], mediumText[1], mediumText[2])
+     .setFontSize(9)
+     .setFont("helvetica", "normal")
+     .text('Need assistance? Contact our support team:', pageWidth / 2, currentY + 18, { align: 'center' });
+
+  doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2])
+     .setFontSize(9)
+     .setFont("helvetica", "bold")
+     .text('info@rankseo.in • +91 9715092104', pageWidth / 2, currentY + 34, { align: 'center' });
+
+  // Legal text bottom
+  const legalY = pageHeight - 40;
+  doc.setTextColor(lightText[0], lightText[1], lightText[2])
+     .setFontSize(7)
+     .setFont("helvetica", "normal")
+     .text('This is an electronically generated invoice and does not require a physical signature.', pageWidth / 2, legalY, { align: 'center' });
+
+  doc.text(`Invoice ID: ${payment.transactionId} • Generated on ${new Date().toLocaleDateString()}`, pageWidth / 2, legalY + 12, { align: 'center' });
 };
 
+
 /**
- * Generate PDF buffer for email attachment
+ * Generate PDF buffer for email attachment using jsPDF
  */
-const generateInvoicePDFBuffer = async (user, payment) => {
-  return new Promise((resolve, reject) => {
+const generateInvoicePDFBuffer = async (user, payment, plan = null) => {
+  return new Promise(async (resolve, reject) => {
     try {
-      const doc = new PDFDocument({ 
-        margin: 50,
-        size: 'A4',
-        bufferPages: true,
-        info: {
-          Title: `Invoice - ${payment.transactionId}`,
-          Author: 'RankSEO',
-          Subject: 'Subscription Invoice',
-          Keywords: 'invoice, receipt, subscription, seo',
-          Creator: 'RankSEO Billing System',
-          CreationDate: new Date()
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'pt',
+        format: 'a4'
+      });
+
+      // Set document metadata
+      doc.setProperties({
+        Title: `Invoice - ${payment.transactionId}`,
+        Author: 'RankSEO',
+        Subject: 'Subscription Invoice',
+        Keywords: 'invoice, receipt, subscription, seo',
+        Creator: 'RankSEO Billing System'
+      });
+
+      // Set default font
+      doc.setFont("helvetica");
+
+      // If plan is not provided, fetch it
+      let planData = plan;
+      if (!planData && payment.planId) {
+        try {
+          planData = await PricingPlan.findById(payment.planId);
+        } catch (error) {
+          console.error("Error fetching plan for PDF:", error);
+          // Continue with basic features if plan fetch fails
         }
-      });
+      }
 
-      // handle doc errors to reject promise and prevent unhandled writes
-      const onError = (pdfErr) => {
-        doc.removeAllListeners('data');
-        doc.removeAllListeners('end');
-        try { doc.destroy(); } catch (e) {}
-        reject(pdfErr);
-      };
-      doc.on('error', onError);
-
-      const buffers = [];
-      doc.on('data', (chunk) => buffers.push(chunk));
-      doc.on('end', () => {
-        const pdfData = Buffer.concat(buffers);
-        resolve(pdfData);
-      });
-
-      // Generate content and finalize
-      generateInvoicePDFContent(doc, user, payment);
-      doc.end();
+      // Generate content with plan data
+      generateInvoicePDFContent(doc, user, payment, planData);
+      
+      const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+      resolve(pdfBuffer);
     } catch (error) {
       reject(error);
     }
@@ -1227,7 +1334,7 @@ const generateInvoicePDFBuffer = async (user, payment) => {
 };
 
 /**
- * Generate PDF and pipe to HTTP response
+ * Generate PDF and pipe to HTTP response using jsPDF
  */
 const generateInvoicePDF = async (req, res) => {
   try {
@@ -1238,7 +1345,7 @@ const generateInvoicePDF = async (req, res) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    // 1. Fetch Payment and User Data
+    // Fetch Payment and User Data
     const payment = await Payment.findOne({ 
       transactionId, 
       userId,
@@ -1254,56 +1361,37 @@ const generateInvoicePDF = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 2. Setup PDF Document
-    const doc = new PDFDocument({ 
-      margin: 50,
-      size: 'A4',
-      bufferPages: true,
-      info: {
-        Title: `Invoice - ${transactionId}`,
-        Author: 'RankSEO',
-        Subject: 'Subscription Invoice',
-        Keywords: 'invoice, receipt, subscription, seo',
-        Creator: 'RankSEO Billing System',
-        CreationDate: new Date()
-      }
+    // Setup PDF Document using jsPDF
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: 'a4'
     });
+
+    // Set document metadata
+    doc.setProperties({
+      Title: `Invoice - ${transactionId}`,
+      Author: 'RankSEO',
+      Subject: 'Subscription Invoice',
+      Keywords: 'invoice, receipt, subscription, seo',
+      Creator: 'RankSEO Billing System'
+    });
+
+    // Set default font
+    doc.setFont("helvetica");
 
     const filename = `RankSEO_Invoice_${payment.planName.replace(/\s/g, '_')}_${transactionId}.pdf`;
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
-    // If PDF generation fails, cleanly handle response and prevent write-after-end
-    const handleDocError = (pdfErr) => {
-      console.error('PDF generation error:', pdfErr);
-      try {
-        // If headers not sent, send a JSON error.
-        if (!res.headersSent) {
-          res.status(500).json({ success: false, message: "Failed to generate invoice PDF" });
-        } else {
-          // headers already sent — ensure response closed
-          res.end();
-        }
-      } catch (e) {
-        // ignore
-      } finally {
-        try { doc.destroy(); } catch (e) {}
-      }
-    };
-    doc.on('error', handleDocError);
+    // Generate content with plan data
+    const plan = await PricingPlan.findById(payment.planId);
+    generateInvoicePDFContent(doc, user, payment, plan);
 
-    // If client disconnects, destroy PDF stream
-    res.on('close', () => {
-      try { doc.destroy(); } catch (e) {}
-    });
-
-    // Pipe PDF to response
-    doc.pipe(res);
-
-    // Generate content and finalize
-    generateInvoicePDFContent(doc, user, payment);
-    doc.end();
+    // Send PDF
+    const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
+    res.send(pdfBuffer);
 
   } catch (err) {
     console.error("Generate Invoice PDF Error:", err?.message || err);
@@ -1312,11 +1400,10 @@ const generateInvoicePDF = async (req, res) => {
         success: false,
         message: "Failed to generate invoice PDF"
       });
-    } else {
-      try { res.end(); } catch (e) {}
     }
   }
 };
+
 
 module.exports = { 
   createOrder, 
