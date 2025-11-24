@@ -47,7 +47,7 @@ const sidebarItems = [
   {
     title: "Billing",
     href: "/profile/billing",
-    icon: User,
+    icon: FileText,
   },
   {
     title: "Support",

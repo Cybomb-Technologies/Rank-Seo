@@ -48,7 +48,7 @@ export default function AdminDashboard() {
         setData(result);
       } else if (response.status === 401) {
         localStorage.removeItem("adminToken");
-        router.push("/admin/login");
+        router.push("/admin");
       } else {
         throw new Error("Failed to fetch dashboard data");
       }
