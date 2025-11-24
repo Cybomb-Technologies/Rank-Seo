@@ -43,7 +43,7 @@
   </url>
 
   <url>
-    <loc>https://rankseo.in/terms-of-services</loc>
+    <loc>https://rankseo.in/terms-and-conditions</loc>
     <lastmod>2025-11-11T06:00:00+00:00</lastmod>
     <priority>0.6</priority>
   </url>
@@ -52,5 +52,17 @@
     <loc>https://rankseo.in/refund-policy</loc>
     <lastmod>2025-11-11T06:00:00+00:00</lastmod>
     <priority>0.6</priority>
+  </url>
+
+    <url>
+    <loc>https://rankseo.in/keyword-generator</loc>
+    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
+    <priority>0.1</priority>
+  </url>
+
+      <url>
+    <loc>https://rankseo.in/scraper</loc>
+    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
+    <priority>0.1</priority>
   </url>
 </urlset>

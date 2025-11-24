@@ -181,10 +181,8 @@ const StatsCard: FC<{
   </div>
 );
 
-
-
 // Usage Limit Alert Component
-const UsageLimitAlert: FC<{ 
+const UsageLimitAlert: FC<{
   usageLimits: UsageLimits;
   onUpgrade: () => void;
 }> = ({ usageLimits, onUpgrade }) => (
@@ -194,20 +192,24 @@ const UsageLimitAlert: FC<{
       <div className="flex-1">
         <h4 className="font-semibold text-orange-800">Usage Limit Reached</h4>
         <p className="text-orange-700 text-sm mt-1">
-          {usageLimits.message || `You've used ${usageLimits.used} of ${usageLimits.limit} website scans this month.`}
+          {usageLimits.message ||
+            `You've used ${usageLimits.used} of ${usageLimits.limit} website scans this month.`}
         </p>
         <div className="w-full bg-orange-200 rounded-full h-2 mt-2">
-          <div 
+          <div
             className="bg-orange-500 h-2 rounded-full transition-all duration-500"
-            style={{ width: `${Math.min(100, (usageLimits.used / usageLimits.limit) * 100)}%` }}
+            style={{
+              width: `${Math.min(
+                100,
+                (usageLimits.used / usageLimits.limit) * 100
+              )}%`,
+            }}
           />
         </div>
         <p className="text-orange-600 text-xs mt-2">
-          {usageLimits.remaining <= 0 ? (
-            "No scans remaining. Upgrade your plan to continue."
-          ) : (
-            `${usageLimits.remaining} scans remaining`
-          )}
+          {usageLimits.remaining <= 0
+            ? "No scans remaining. Upgrade your plan to continue."
+            : `${usageLimits.remaining} scans remaining`}
         </p>
         <button
           onClick={onUpgrade}
@@ -268,7 +270,7 @@ export default function ScraperPage() {
           const used = data.usage.used || 0;
           const limit = data.usage.limit || 10;
           const remaining = Math.max(0, limit - used);
-          
+
           setUsageLimits({
             used: used,
             limit: limit,
@@ -337,20 +339,20 @@ export default function ScraperPage() {
           count: response.data.totalScraped,
           reportId: response.data.reportId,
         });
-        
+
         // Update usage limits from API response
         if (response.data.usage) {
           const updatedUsed = response.data.usage.used;
           const limit = response.data.usage.limit || 10;
           const remaining = Math.max(0, limit - updatedUsed);
-          
+
           setUsageLimits({
             used: updatedUsed,
             limit: limit,
             remaining: remaining,
           });
         }
-        
+
         setTimeout(() => setShowAnimations(true), 500);
       } else {
         setError(
@@ -359,19 +361,19 @@ export default function ScraperPage() {
       }
     } catch (err: any) {
       console.error("Crawl error:", err);
-      
+
       // Handle 401 Unauthorized
       if (err.response?.status === 401) {
         localStorage.removeItem("token");
         window.location.href = "/login";
         return;
       }
-      
+
       // Handle 403 Forbidden (Usage limit exceeded)
       if (err.response?.status === 403) {
         const errorData: ErrorResponse = err.response.data;
         console.log("Usage limit error:", errorData);
-        
+
         // Use the usage data from the error response
         if (errorData.usage) {
           const updatedUsageLimits = {
@@ -380,7 +382,7 @@ export default function ScraperPage() {
             remaining: errorData.usage.remaining,
             message: errorData.error,
           };
-          
+
           setUsageLimits(updatedUsageLimits);
           setShowUpgradeModal(true);
           setError(null);
@@ -389,18 +391,20 @@ export default function ScraperPage() {
           const used = (usageLimits?.used || 0) + 1;
           const limit = usageLimits?.limit || 10;
           const remaining = Math.max(0, limit - used);
-          
+
           setUsageLimits({
             used: used,
             limit: limit,
             remaining: remaining,
-            message: errorData.error || "Usage limit exceeded, but details are unavailable.",
+            message:
+              errorData.error ||
+              "Usage limit exceeded, but details are unavailable.",
           });
           setShowUpgradeModal(true);
         }
         return;
       }
-      
+
       // Handle other errors
       const errorMessage =
         err.response?.data?.error ||
@@ -436,11 +440,11 @@ export default function ScraperPage() {
   const isDisabled = loading || !url || hasReachedLimit;
 
   const metaPropsData = {
-    title: "SEO Keyword Extractor Tool | AI-Powered Keyword Analysis",
+    title: "SEO Keyword Extractor Tool - Free Keyword Analysis",
     description:
-      "Extract and analyze keywords from any website with AI-powered SEO tools. Get primary, secondary, long-tail keywords and search intent analysis.",
+      "Extract keywords from any URL with our free SEO keyword extractor tool. Analyze keyword volume, discover primary & secondary terms, and get comprehensive SEO keyword analysis for better content strategy.",
     keyword:
-      "keyword extractor, SEO keyword tool, keyword analysis, keyword research, search intent analysis",
+      "seo keyword extractor, keyword extraction tool, free keyword analyzer, keyword volume checker, url keyword scanner",
     url: "https://rankseo.in/scraper",
     image: "https://rankseo.in/SEO_LOGO.png",
   };
@@ -487,7 +491,7 @@ export default function ScraperPage() {
             {/* Enhanced Input Section */}
             <div className="max-w-2xl mx-auto mb-10">
               {/* Corrected logic for Usage Limit Display/Alert */}
-              
+
               {/* End of Corrected logic */}
 
               <div className="flex flex-col sm:flex-row gap-3 relative">
@@ -533,12 +537,13 @@ export default function ScraperPage() {
                   )}
                 </button>
               </div>
-              
+
               {/* Updated fallback message for when limit is reached */}
               {hasReachedLimit && (
                 <p className="text-sm text-gray-500 mt-3 text-center">
-                  You've reached your monthly limit of {usageLimits?.limit} scans.{" "}
-                  <button 
+                  You've reached your monthly limit of {usageLimits?.limit}{" "}
+                  scans.{" "}
+                  <button
                     onClick={() => setShowUpgradeModal(true)}
                     className="text-teal-600 hover:text-teal-700 font-medium underline"
                   >
@@ -551,66 +556,73 @@ export default function ScraperPage() {
 
             {/* Rest of your component remains the same... */}
             {/* Empty Space Content */}
-            {!loading && !jsonResult && !error && !hasReachedLimit && ( // Added !hasReachedLimit here
-              <div className="max-w-4xl mx-auto mb-12">
-                <div className="text-center mb-8">
-                  <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent mb-3">
-                    Ready to Discover Keywords?
-                  </h2>
-                </div>
-                {/* Call to Action */}
-                <div className="text-center mt-10">
-                  <div className="bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border border-teal-200/50 rounded-2xl p-6 backdrop-blur-sm">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      Start Your SEO Journey Today
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      Unlock the power of data-driven keyword research to boost
-                      your search engine rankings and drive targeted traffic to
-                      your website.
-                    </p>
+            {!loading &&
+              !jsonResult &&
+              !error &&
+              !hasReachedLimit && ( // Added !hasReachedLimit here
+                <div className="max-w-4xl mx-auto mb-12">
+                  <div className="text-center mb-8">
+                    <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent mb-3">
+                      Ready to Discover Keywords?
+                    </h2>
                   </div>
-                </div>
-                {/* Additional Features Section */}
-                <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div className="bg-white/95 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                        <span className="text-white font-bold text-lg">🚀</span>
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
-                          AI-Powered Analysis
-                        </h3>
-                        <p className="text-gray-600 text-sm">
-                          Our advanced AI algorithms analyze website content,
-                          meta tags, and structure to extract the most relevant
-                          keywords for your SEO strategy.
-                        </p>
-                      </div>
+                  {/* Call to Action */}
+                  <div className="text-center mt-10">
+                    <div className="bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border border-teal-200/50 rounded-2xl p-6 backdrop-blur-sm">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">
+                        Start Your SEO Journey Today
+                      </h3>
+                      <p className="text-gray-600 mb-4">
+                        Unlock the power of data-driven keyword research to
+                        boost your search engine rankings and drive targeted
+                        traffic to your website.
+                      </p>
                     </div>
                   </div>
+                  {/* Additional Features Section */}
+                  <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div className="bg-white/95 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-cyan-400 to-blue-400 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                          <span className="text-white font-bold text-lg">
+                            🚀
+                          </span>
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">
+                            AI-Powered Analysis
+                          </h3>
+                          <p className="text-gray-600 text-sm">
+                            Our advanced AI algorithms analyze website content,
+                            meta tags, and structure to extract the most
+                            relevant keywords for your SEO strategy.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-                  <div className="bg-white/95 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-r from-teal-400 to-emerald-400 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                        <span className="text-white font-bold text-lg">📊</span>
-                      </div>
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">
-                          Comprehensive Reports
-                        </h3>
-                        <p className="text-gray-600 text-sm">
-                          Get detailed insights including primary keywords,
-                          search intent analysis, long-tail variations, and
-                          competitive keyword opportunities.
-                        </p>
+                    <div className="bg-white/95 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-teal-400 to-emerald-400 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
+                          <span className="text-white font-bold text-lg">
+                            📊
+                          </span>
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">
+                            Comprehensive Reports
+                          </h3>
+                          <p className="text-gray-600 text-sm">
+                            Get detailed insights including primary keywords,
+                            search intent analysis, long-tail variations, and
+                            competitive keyword opportunities.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
             {/* Error Messages */}
             {error && (
@@ -815,14 +827,19 @@ export default function ScraperPage() {
                   Upgrade Your Plan
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  You've reached your monthly limit of {usageLimits?.limit} website scans. 
-                  Upgrade to unlock more features and higher limits.
+                  You've reached your monthly limit of {usageLimits?.limit}{" "}
+                  website scans. Upgrade to unlock more features and higher
+                  limits.
                 </p>
-                
+
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                  <h4 className="font-semibold text-gray-800 mb-2">Current Plan Features</h4>
+                  <h4 className="font-semibold text-gray-800 mb-2">
+                    Current Plan Features
+                  </h4>
                   <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• {usageLimits?.limit || 10} website scans per month</li>
+                    <li>
+                      • {usageLimits?.limit || 10} website scans per month
+                    </li>
                     <li>• Comprehensive keyword analysis</li>
                     <li>• Search intent categorization</li>
                   </ul>

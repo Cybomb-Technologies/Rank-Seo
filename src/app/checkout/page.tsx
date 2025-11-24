@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { useState, useMemo, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 
 interface PlanDetails {
   id: string;
@@ -9,8 +9,8 @@ interface PlanDetails {
   price: string;
   description: string;
   features: string[];
-  billingCycle: 'monthly' | 'annual';
-  currency: 'USD' | 'INR';
+  billingCycle: "monthly" | "annual";
+  currency: "USD" | "INR";
   isCustom?: boolean;
   savings?: string;
 }
@@ -34,197 +34,240 @@ interface FormData {
 
 const CheckoutPage: React.FC = () => {
   const searchParams = useSearchParams();
-  const planId = searchParams.get('plan') || 'starter';
-  const billing = (searchParams.get('billing') as 'monthly' | 'annual') || 'annual';
-  const currency = (searchParams.get('currency') as 'USD' | 'INR') || 'USD';
+  const planId = searchParams.get("plan") || "starter";
+  const billing =
+    (searchParams.get("billing") as "monthly" | "annual") || "annual";
+  const currency = (searchParams.get("currency") as "USD" | "INR") || "USD";
 
   const [formData, setFormData] = useState<FormData>({
-    email: '',
-    name: '',
-    company: '',
-    phone: '',
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    cardName: '',
-    address: '',
-    city: '',
-    zipCode: '',
-    country: '',
+    email: "",
+    name: "",
+    company: "",
+    phone: "",
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+    cardName: "",
+    address: "",
+    city: "",
+    zipCode: "",
+    country: "",
     acceptTerms: false,
-    acceptMarketing: false
+    acceptMarketing: false,
   });
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'card' | 'paypal' | 'bank'>('card');
+  const [activeTab, setActiveTab] = useState<"card" | "paypal" | "bank">(
+    "card"
+  );
   const [showSuccess, setShowSuccess] = useState(false);
 
   // Memoized plan details
-  const planDetails: Record<string, PlanDetails> = useMemo(() => ({
-    starter: {
-      id: 'starter',
-      name: 'Starter',
-      price: currency === 'USD' 
-        ? (billing === 'annual' ? '$15/month' : '$19/month') 
-        : (billing === 'annual' ? '₹1,253/month' : '₹1,587/month'),
-      description: 'Perfect for small businesses and bloggers',
-      features: [
-        '5 SEO audits per month',
-        'Basic technical SEO analysis',
-        'Keyword suggestions (up to 50)',
-        'Email support',
-        'PDF report export',
-        'Basic performance metrics'
-      ],
-      billingCycle: billing,
-      currency: currency,
-      savings: billing === 'annual' ? 'Save 20%' : ''
-    },
-    professional: {
-      id: 'professional',
-      name: 'Professional',
-      price: currency === 'USD' 
-        ? (billing === 'annual' ? '$39/month' : '$49/month') 
-        : (billing === 'annual' ? '₹3,257/month' : '₹4,092/month'),
-      description: 'Ideal for marketing agencies and growing businesses',
-      features: [
-        '20 SEO audits per month',
-        'Comprehensive technical SEO analysis',
-        'Competitor analysis (up to 3 competitors)',
-        'Keyword tracking (up to 200 keywords)',
-        'Content optimization suggestions',
-        'Priority email & chat support',
-        'White-label reports',
-        '14-day free trial'
-      ],
-      billingCycle: billing,
-      currency: currency,
-      savings: billing === 'annual' ? 'Save 20%' : ''
-    },
-    enterprise: {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: 'Custom',
-      description: 'For large organizations with advanced needs',
-      features: [
-        'Unlimited SEO audits',
-        'Advanced competitor analysis',
-        'Custom keyword tracking',
-        'API access',
-        'Dedicated account manager',
-        '24/7 priority support',
-        'Custom integration options',
-        'Team collaboration tools'
-      ],
-      billingCycle: billing,
-      currency: currency,
-      isCustom: true
-    }
-  }), [billing, currency]);
+  const planDetails: Record<string, PlanDetails> = useMemo(
+    () => ({
+      starter: {
+        id: "starter",
+        name: "Starter",
+        price:
+          currency === "USD"
+            ? billing === "annual"
+              ? "$15/month"
+              : "$19/month"
+            : billing === "annual"
+            ? "₹1,253/month"
+            : "₹1,587/month",
+        description: "Perfect for small businesses and bloggers",
+        features: [
+          "5 SEO audits per month",
+          "Basic technical SEO analysis",
+          "Keyword suggestions (up to 50)",
+          "Email support",
+          "PDF report export",
+          "Basic performance metrics",
+        ],
+        billingCycle: billing,
+        currency: currency,
+        savings: billing === "annual" ? "Save 20%" : "",
+      },
+      professional: {
+        id: "professional",
+        name: "Professional",
+        price:
+          currency === "USD"
+            ? billing === "annual"
+              ? "$39/month"
+              : "$49/month"
+            : billing === "annual"
+            ? "₹3,257/month"
+            : "₹4,092/month",
+        description: "Ideal for marketing agencies and growing businesses",
+        features: [
+          "20 SEO audits per month",
+          "Comprehensive technical SEO analysis",
+          "Competitor analysis (up to 3 competitors)",
+          "Keyword tracking (up to 200 keywords)",
+          "Content optimization suggestions",
+          "Priority email & chat support",
+          "White-label reports",
+          "14-day free trial",
+        ],
+        billingCycle: billing,
+        currency: currency,
+        savings: billing === "annual" ? "Save 20%" : "",
+      },
+      enterprise: {
+        id: "enterprise",
+        name: "Enterprise",
+        price: "Custom",
+        description: "For large organizations with advanced needs",
+        features: [
+          "Unlimited SEO audits",
+          "Advanced competitor analysis",
+          "Custom keyword tracking",
+          "API access",
+          "Dedicated account manager",
+          "24/7 priority support",
+          "Custom integration options",
+          "Team collaboration tools",
+        ],
+        billingCycle: billing,
+        currency: currency,
+        isCustom: true,
+      },
+    }),
+    [billing, currency]
+  );
 
   const currentPlan = planDetails[planId];
 
   // Why Choose These Plans features - Plan specific benefits
-const planBenefits = useMemo(() => {
-  const baseBenefits = [
-    {
-      icon: 'search',
-      title: 'AI-Powered SEO Audits',
-      description: 'Get comprehensive website analysis with our advanced AI algorithms'
-    },
-    {
-      icon: 'chart-line',
-      title: 'Keyword Tracking',
-      description: 'Monitor keyword rankings and track your SEO progress'
-    },
-    {
-      icon: 'bolt',
-      title: 'Technical SEO Analysis',
-      description: 'Identify crawl errors, site speed issues, and technical improvements'
+  const planBenefits = useMemo(() => {
+    const baseBenefits = [
+      {
+        icon: "search",
+        title: "AI-Powered SEO Audits",
+        description:
+          "Get comprehensive website analysis with our advanced AI algorithms",
+      },
+      {
+        icon: "chart-line",
+        title: "Keyword Tracking",
+        description: "Monitor keyword rankings and track your SEO progress",
+      },
+      {
+        icon: "bolt",
+        title: "Technical SEO Analysis",
+        description:
+          "Identify crawl errors, site speed issues, and technical improvements",
+      },
+    ];
+
+    const professionalBenefits = [
+      {
+        icon: "chart-bar",
+        title: "Competitor Analysis",
+        description: "Benchmark your performance against up to 3 competitors",
+      },
+      {
+        icon: "bullseye",
+        title: "Content Optimization",
+        description: "Get actionable recommendations to optimize your content",
+      },
+      {
+        icon: "file-alt",
+        title: "White-label Reports",
+        description: "Generate custom reports with your branding for clients",
+      },
+    ];
+
+    const enterpriseBenefits = [
+      {
+        icon: "link",
+        title: "Advanced Backlink Analysis",
+        description: "Comprehensive backlink profile analysis and monitoring",
+      },
+      {
+        icon: "code",
+        title: "API Access",
+        description: "Full API access for custom integrations and automation",
+      },
+      {
+        icon: "users",
+        title: "Team Collaboration",
+        description: "Multi-user access with role-based permissions",
+      },
+    ];
+
+    switch (currentPlan.id) {
+      case "starter":
+        return baseBenefits;
+      case "professional":
+        return [...baseBenefits, ...professionalBenefits];
+      case "enterprise":
+        return [
+          ...baseBenefits,
+          ...professionalBenefits,
+          ...enterpriseBenefits,
+        ];
+      default:
+        return baseBenefits;
     }
-  ];
+  }, [currentPlan.id]);
 
-  const professionalBenefits = [
-    {
-      icon: 'chart-bar',
-      title: 'Competitor Analysis',
-      description: 'Benchmark your performance against up to 3 competitors'
+  const handleInputChange = useCallback(
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >
+    ) => {
+      const { name, value, type } = e.target;
+      setFormData((prev) => ({
+        ...prev,
+        [name]:
+          type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
+      }));
     },
-    {
-      icon: 'bullseye',
-      title: 'Content Optimization',
-      description: 'Get actionable recommendations to optimize your content'
-    },
-    {
-      icon: 'file-alt',
-      title: 'White-label Reports',
-      description: 'Generate custom reports with your branding for clients'
-    }
-  ];
-
-  const enterpriseBenefits = [
-    {
-      icon: 'link',
-      title: 'Advanced Backlink Analysis',
-      description: 'Comprehensive backlink profile analysis and monitoring'
-    },
-    {
-      icon: 'code',
-      title: 'API Access',
-      description: 'Full API access for custom integrations and automation'
-    },
-    {
-      icon: 'users',
-      title: 'Team Collaboration',
-      description: 'Multi-user access with role-based permissions'
-    }
-  ];
-
-  switch (currentPlan.id) {
-    case 'starter':
-      return baseBenefits;
-    case 'professional':
-      return [...baseBenefits, ...professionalBenefits];
-    case 'enterprise':
-      return [...baseBenefits, ...professionalBenefits, ...enterpriseBenefits];
-    default:
-      return baseBenefits;
-  }
-}, [currentPlan.id]);
-
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
-    }));
-  }, []);
+    []
+  );
 
   const formatCardNumber = useCallback((value: string): string => {
-    return value.replace(/\s?/g, '').replace(/(\d{4})/g, '$1 ').trim().slice(0, 19);
+    return value
+      .replace(/\s?/g, "")
+      .replace(/(\d{4})/g, "$1 ")
+      .trim()
+      .slice(0, 19);
   }, []);
 
   const formatExpiryDate = useCallback((value: string): string => {
-    return value.replace(/\//g, '').replace(/(\d{2})(\d{2})/, '$1/$2').slice(0, 5);
+    return value
+      .replace(/\//g, "")
+      .replace(/(\d{2})(\d{2})/, "$1/$2")
+      .slice(0, 5);
   }, []);
 
-  const handleCardNumberChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatCardNumber(e.target.value);
-    setFormData(prev => ({ ...prev, cardNumber: formatted }));
-  }, [formatCardNumber]);
+  const handleCardNumberChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const formatted = formatCardNumber(e.target.value);
+      setFormData((prev) => ({ ...prev, cardNumber: formatted }));
+    },
+    [formatCardNumber]
+  );
 
-  const handleExpiryDateChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatExpiryDate(e.target.value);
-    setFormData(prev => ({ ...prev, expiryDate: formatted }));
-  }, [formatExpiryDate]);
+  const handleExpiryDateChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const formatted = formatExpiryDate(e.target.value);
+      setFormData((prev) => ({ ...prev, expiryDate: formatted }));
+    },
+    [formatExpiryDate]
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
-    
+
     // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
     setShowSuccess(true);
     setIsProcessing(false);
   };
@@ -244,31 +287,31 @@ const planBenefits = useMemo(() => {
   const Icon = ({ name }: { name: string }) => {
     const getIcon = () => {
       switch (name) {
-        case 'search':
+        case "search":
           return <i className="fas fa-search"></i>;
-        case 'chart-line':
+        case "chart-line":
           return <i className="fas fa-chart-line"></i>;
-        case 'bolt':
+        case "bolt":
           return <i className="fas fa-bolt"></i>;
-        case 'chart-bar':
+        case "chart-bar":
           return <i className="fas fa-chart-bar"></i>;
-        case 'bullseye':
+        case "bullseye":
           return <i className="fas fa-bullseye"></i>;
-        case 'file-alt':
+        case "file-alt":
           return <i className="fas fa-file-alt"></i>;
-        case 'link':
+        case "link":
           return <i className="fas fa-link"></i>;
-        case 'code':
+        case "code":
           return <i className="fas fa-code"></i>;
-        case 'users':
+        case "users":
           return <i className="fas fa-users"></i>;
-        case 'shield':
+        case "shield":
           return <i className="fas fa-shield-alt"></i>;
-        case 'lock':
+        case "lock":
           return <i className="fas fa-lock"></i>;
-        case 'sync':
+        case "sync":
           return <i className="fas fa-sync"></i>;
-        case 'headset':
+        case "headset":
           return <i className="fas fa-headset"></i>;
         default:
           return <i className="fas fa-circle"></i>;
@@ -293,17 +336,24 @@ const planBenefits = useMemo(() => {
                 <strong>Plan:</strong> {currentPlan.name}
               </div>
               <div className="detail-item">
-                <strong>Billing:</strong> {billing === 'annual' ? 'Annual' : 'Monthly'}
+                <strong>Billing:</strong>{" "}
+                {billing === "annual" ? "Annual" : "Monthly"}
               </div>
               <div className="detail-item">
                 <strong>Email:</strong> {formData.email}
               </div>
             </div>
             <div className="success-actions">
-              <button className="btn primary" onClick={() => window.location.href = '/dashboard'}>
+              <button
+                className="btn primary"
+                onClick={() => (window.location.href = "/dashboard")}
+              >
                 Go to Dashboard
               </button>
-              <button className="btn secondary" onClick={() => window.location.href = '/'}>
+              <button
+                className="btn secondary"
+                onClick={() => (window.location.href = "/")}
+              >
                 Back to Home
               </button>
             </div>
@@ -322,7 +372,7 @@ const planBenefits = useMemo(() => {
             padding: 60px 40px;
             border-radius: 20px;
             text-align: center;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
             max-width: 500px;
             width: 100%;
           }
@@ -361,16 +411,25 @@ const planBenefits = useMemo(() => {
   return (
     <div className="checkout-page">
       {/* Add Font Awesome CDN */}
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-      
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      />
+
       <div className="container">
         <div className="checkout-header">
           <div className="header-content pt-10">
             <h1>Complete Your Purchase</h1>
-            <p>You're signing up for the <strong>{currentPlan.name}</strong> plan</p>
+            <p>
+              You're signing up for the <strong>{currentPlan.name}</strong> plan
+            </p>
             <div className="header-badge">
-              {currentPlan.savings && <span className="savings-badge">{currentPlan.savings}</span>}
-              {currentPlan.id === 'professional' && <span className="trial-badge">14-Day Free Trial</span>}
+              {currentPlan.savings && (
+                <span className="savings-badge">{currentPlan.savings}</span>
+              )}
+              {currentPlan.id === "professional" && (
+                <span className="trial-badge">14-Day Free Trial</span>
+              )}
             </div>
           </div>
         </div>
@@ -383,13 +442,13 @@ const planBenefits = useMemo(() => {
                 <h3>Order Summary</h3>
                 <div className="plan-type">{currentPlan.name} Plan</div>
               </div>
-              
+
               <div className="plan-details">
                 <div className="price-section">
                   <div className="price">{currentPlan.price}</div>
                   <p className="price-note">{currentPlan.description}</p>
                 </div>
-                
+
                 <div className="features-section">
                   <h4>What's included:</h4>
                   <ul className="features-list">
@@ -405,15 +464,15 @@ const planBenefits = useMemo(() => {
                 <div className="billing-info">
                   <div className="info-item">
                     <span>Billing cycle:</span>
-                    <span className={billing === 'annual' ? 'highlight' : ''}>
-                      {billing === 'annual' ? 'Annual (Save 20%)' : 'Monthly'}
+                    <span className={billing === "annual" ? "highlight" : ""}>
+                      {billing === "annual" ? "Annual (Save 20%)" : "Monthly"}
                     </span>
                   </div>
                   <div className="info-item">
                     <span>Currency:</span>
                     <span>{currency}</span>
                   </div>
-                  {currentPlan.id === 'professional' && (
+                  {currentPlan.id === "professional" && (
                     <div className="info-item highlight">
                       <span>Free trial:</span>
                       <span>14 days</span>
@@ -466,9 +525,12 @@ const planBenefits = useMemo(() => {
                 <div className="contact-form">
                   <div className="form-header">
                     <h3>Contact Sales</h3>
-                    <p>Our team will get in touch to discuss custom pricing and requirements.</p>
+                    <p>
+                      Our team will get in touch to discuss custom pricing and
+                      requirements.
+                    </p>
                   </div>
-                  
+
                   <form onSubmit={handleSubmit}>
                     <div className="form-grid">
                       <div className="form-group">
@@ -521,7 +583,9 @@ const planBenefits = useMemo(() => {
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="message">What are your SEO needs? *</label>
+                      <label htmlFor="message">
+                        What are your SEO needs? *
+                      </label>
                       <textarea
                         id="message"
                         name="message"
@@ -541,19 +605,34 @@ const planBenefits = useMemo(() => {
                           onChange={handleInputChange}
                           required
                         />
-                        <label htmlFor="acceptTermsContact" className="checkbox-label">
-                          I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a> *
+                        <label
+                          htmlFor="acceptTermsContact"
+                          className="checkbox-label"
+                        >
+                          I agree to the{" "}
+                          <a href="/terms" target="_blank">
+                            Terms & Conditions
+                          </a>{" "}
+                          and{" "}
+                          <a href="/privacy" target="_blank">
+                            Privacy Policy
+                          </a>{" "}
+                          *
                         </label>
                       </div>
 
-                      <button type="submit" className="btn primary large" disabled={isProcessing}>
+                      <button
+                        type="submit"
+                        className="btn primary large"
+                        disabled={isProcessing}
+                      >
                         {isProcessing ? (
                           <>
                             <i className="fas fa-spinner fa-spin"></i>
                             Contacting Sales Team...
                           </>
                         ) : (
-                          'Contact Sales Team'
+                          "Contact Sales Team"
                         )}
                       </button>
                     </div>
@@ -566,25 +645,31 @@ const planBenefits = useMemo(() => {
                     <h3>Payment Method</h3>
                     <div className="payment-tabs">
                       <button
-                        className={`tab-btn ${activeTab === 'card' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('card')}
+                        className={`tab-btn ${
+                          activeTab === "card" ? "active" : ""
+                        }`}
+                        onClick={() => setActiveTab("card")}
                         type="button"
                       >
                         <i className="fas fa-credit-card "></i>
                         Credit/Debit Card
                       </button>
                       <button
-                        className={`tab-btn ${activeTab === 'paypal' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('paypal')}
+                        className={`tab-btn ${
+                          activeTab === "paypal" ? "active" : ""
+                        }`}
+                        onClick={() => setActiveTab("paypal")}
                         type="button"
                       >
                         <i className="fab fa-paypal"></i>
                         PayPal
                       </button>
-                      {currency === 'INR' && (
+                      {currency === "INR" && (
                         <button
-                          className={`tab-btn ${activeTab === 'bank' ? 'active' : ''}`}
-                          onClick={() => setActiveTab('bank')}
+                          className={`tab-btn ${
+                            activeTab === "bank" ? "active" : ""
+                          }`}
+                          onClick={() => setActiveTab("bank")}
                           type="button"
                         >
                           <i className="fas fa-university"></i>
@@ -614,7 +699,7 @@ const planBenefits = useMemo(() => {
                       </div>
 
                       {/* Payment Details */}
-                      {activeTab === 'card' && (
+                      {activeTab === "card" && (
                         <div className="form-section">
                           <h4>Card Details</h4>
                           <div className="form-group">
@@ -675,12 +760,16 @@ const planBenefits = useMemo(() => {
                         </div>
                       )}
 
-                      {activeTab === 'paypal' && (
+                      {activeTab === "paypal" && (
                         <div className="paypal-section">
                           <div className="paypal-content">
                             <i className="fab fa-paypal"></i>
                             <h4>Pay with PayPal</h4>
-                            <p>You will be redirected to PayPal to complete your payment securely. Your account will be activated immediately after payment confirmation.</p>
+                            <p>
+                              You will be redirected to PayPal to complete your
+                              payment securely. Your account will be activated
+                              immediately after payment confirmation.
+                            </p>
                             <div className="paypal-features">
                               <div className="feature">
                                 <i className="fas fa-shield-alt"></i>
@@ -699,7 +788,7 @@ const planBenefits = useMemo(() => {
                         </div>
                       )}
 
-                      {activeTab === 'bank' && (
+                      {activeTab === "bank" && (
                         <div className="bank-section">
                           <div className="bank-content">
                             <h4>Bank Transfer</h4>
@@ -726,15 +815,16 @@ const planBenefits = useMemo(() => {
                               </div>
                             </div>
                             <p className="bank-note">
-                              Please include your email address in the transfer reference. 
-                              We'll activate your account within 24 hours of payment confirmation.
+                              Please include your email address in the transfer
+                              reference. We'll activate your account within 24
+                              hours of payment confirmation.
                             </p>
                           </div>
                         </div>
                       )}
 
                       {/* Billing Address */}
-                      {(activeTab === 'card' || activeTab === 'paypal') && (
+                      {(activeTab === "card" || activeTab === "paypal") && (
                         <div className="form-section">
                           <h4>Billing Address</h4>
                           <div className="form-group">
@@ -810,8 +900,19 @@ const planBenefits = useMemo(() => {
                             onChange={handleInputChange}
                             required
                           />
-                          <label htmlFor="acceptTerms" className="checkbox-label">
-                            I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a> *
+                          <label
+                            htmlFor="acceptTerms"
+                            className="checkbox-label"
+                          >
+                            I agree to the{" "}
+                            <a href="/terms-and-conditions" target="_blank">
+                              Terms & Conditions
+                            </a>{" "}
+                            and{" "}
+                            <a href="/privacy" target="_blank">
+                              Privacy Policy
+                            </a>{" "}
+                            *
                           </label>
                         </div>
 
@@ -823,17 +924,23 @@ const planBenefits = useMemo(() => {
                             checked={formData.acceptMarketing}
                             onChange={handleInputChange}
                           />
-                          <label htmlFor="acceptMarketing" className="checkbox-label">
-                            Send me product updates, SEO tips, and special offers
+                          <label
+                            htmlFor="acceptMarketing"
+                            className="checkbox-label"
+                          >
+                            Send me product updates, SEO tips, and special
+                            offers
                           </label>
                         </div>
                       </div>
 
                       {/* Submit Button */}
                       <div className="form-actions">
-                        <button 
-                          type="submit" 
-                          className={`btn primary large ${isProcessing ? 'processing' : ''}`}
+                        <button
+                          type="submit"
+                          className={`btn primary large ${
+                            isProcessing ? "processing" : ""
+                          }`}
                           disabled={isProcessing}
                         >
                           {isProcessing ? (
@@ -841,10 +948,10 @@ const planBenefits = useMemo(() => {
                               <i className="fas fa-spinner fa-spin"></i>
                               Processing...
                             </>
-                          ) : currentPlan.id === 'professional' ? (
-                            'Start 14-Day Free Trial'
+                          ) : currentPlan.id === "professional" ? (
+                            "Start 14-Day Free Trial"
                           ) : (
-                            'Get Started Now'
+                            "Get Started Now"
                           )}
                         </button>
 
@@ -853,9 +960,10 @@ const planBenefits = useMemo(() => {
                           Your payment is secure and encrypted with 256-bit SSL
                         </p>
 
-                        {currentPlan.id === 'professional' && (
+                        {currentPlan.id === "professional" && (
                           <p className="trial-note">
-                            No credit card required for free trial. You can cancel anytime.
+                            No credit card required for free trial. You can
+                            cancel anytime.
                           </p>
                         )}
                       </div>
@@ -894,7 +1002,8 @@ const planBenefits = useMemo(() => {
 
       <style jsx>{`
         .checkout-page {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+            Oxygen, Ubuntu, sans-serif;
           background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%);
           min-height: 100vh;
           padding: 40px 0;
@@ -934,7 +1043,8 @@ const planBenefits = useMemo(() => {
           flex-wrap: wrap;
         }
 
-        .savings-badge, .trial-badge {
+        .savings-badge,
+        .trial-badge {
           padding: 8px 16px;
           border-radius: 20px;
           font-size: 0.9rem;
@@ -971,7 +1081,9 @@ const planBenefits = useMemo(() => {
           gap: 25px;
         }
 
-        .summary-card, .benefits-card, .security-card {
+        .summary-card,
+        .benefits-card,
+        .security-card {
           background: white;
           border-radius: 16px;
           padding: 30px;
@@ -1085,7 +1197,8 @@ const planBenefits = useMemo(() => {
           padding-top: 20px;
         }
 
-        .total-line, .total-main {
+        .total-line,
+        .total-main {
           display: flex;
           justify-content: space-between;
           padding: 10px 0;
@@ -1212,7 +1325,6 @@ const planBenefits = useMemo(() => {
         /* Payment Icons Brand Colors */
         .payment-icon-group .fa-cc-visa {
           color: #1a1f71;
-          
         }
 
         .payment-icon-group .fa-cc-mastercard {
@@ -1447,7 +1559,8 @@ const planBenefits = useMemo(() => {
         }
 
         /* PayPal & Bank Sections */
-        .paypal-section, .bank-section {
+        .paypal-section,
+        .bank-section {
           text-align: center;
           padding: 40px 20px;
           background: #f0fdfa;
@@ -1542,11 +1655,11 @@ const planBenefits = useMemo(() => {
             grid-template-columns: 1fr;
             gap: 30px;
           }
-          
+
           .order-summary {
             order: 2;
           }
-          
+
           .checkout-form-section {
             order: 1;
           }
