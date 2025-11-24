@@ -167,10 +167,10 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/terms-of-services"
+                  href="/terms-and-conditions"
                   className="text-muted-foreground hover:text-foreground text-sm transition-colors"
                 >
-                  Terms of Service
+                  Terms & Conditions
                 </Link>
               </li>
               <li>

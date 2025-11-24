@@ -31,7 +31,7 @@ interface UserProfile {
   subscriptionStatus: string;
   planExpiry: string;
   maxAuditsPerMonth: number;
-  
+
   auditsUsed: number;
 
   memberSince: string;
@@ -156,15 +156,22 @@ export default function AuditPage() {
     // Check if user is logged in and has reached limit
     if (isLoggedIn && userProfile) {
       if (userProfile.auditsUsed >= userProfile.maxAuditsPerMonth) {
-        alert(`❌ Monthly audit limit reached! You've used ${userProfile.auditsUsed} out of ${userProfile.maxAuditsPerMonth} audits. Please upgrade your plan.`);
-        router.push('/pricing');
+        alert(
+          `❌ Monthly audit limit reached! You've used ${userProfile.auditsUsed} out of ${userProfile.maxAuditsPerMonth} audits. Please upgrade your plan.`
+        );
+        router.push("/pricing");
         return;
       }
 
       // Check if subscription is active for paid plans
-      if (userProfile.subscriptionStatus !== "active" && userProfile.maxAuditsPerMonth > 5) {
-        alert(`❌ Your subscription is not active. Please renew your subscription to continue using ${userProfile.maxAuditsPerMonth} audits per month.`);
-        router.push('/pricing');
+      if (
+        userProfile.subscriptionStatus !== "active" &&
+        userProfile.maxAuditsPerMonth > 5
+      ) {
+        alert(
+          `❌ Your subscription is not active. Please renew your subscription to continue using ${userProfile.maxAuditsPerMonth} audits per month.`
+        );
+        router.push("/pricing");
         return;
       }
     }
@@ -226,7 +233,9 @@ export default function AuditPage() {
 
       if (response.status === 403) {
         const errorData = await response.json();
-        alert(errorData.message || "🚀 Free audits used up for today! Please login.");
+        alert(
+          errorData.message || "🚀 Free audits used up for today! Please login."
+        );
         if (!isLoggedIn) {
           router.push("/login");
         }
@@ -240,12 +249,12 @@ export default function AuditPage() {
       const data = await response.json();
       setReport(data.audit || data);
       setAuditCount((prev) => prev + 1);
-      
+
       // Refresh user profile to update audit count
       if (token) {
         await fetchUserProfile(token);
       }
-      
+
       stopProgressAnimation(true);
     } catch (err: any) {
       if (err.name === "AbortError") {
@@ -271,18 +280,21 @@ export default function AuditPage() {
   };
 
   const metaPropsData = {
-    title: "Free SEO Audit Tool | Website Performance & Accessibility Analysis",
+    title:
+      "Free SEO Audit & Checker - Comprehensive Page Audit for SEO Ranking",
     description:
-      "Run comprehensive SEO, performance, accessibility, and best practices audits for any website. Get detailed reports with actionable recommendations to improve your rankings.",
+      "Use our free SEO audit and checker tool to perform a detailed page audit. This free SEO checker helps improve your SEO optimization service with actionable insights for better SEO ranking.",
     keyword:
-      "SEO audit, website analysis, performance testing, accessibility check, SEO tools, free audit, website optimization",
+      "seo optimization service, page audit, free seo audit, free seo checker, seo ranking checker",
     url: "https://rankseo.in/audit",
     image: "https://rankseo.in/SEO_LOGO.png",
   };
 
   // Show usage info for logged-in users
   const showUsageInfo = isLoggedIn && userProfile;
-  const remainingAudits = userProfile ? Math.max(0, userProfile.maxAuditsPerMonth - userProfile.auditsUsed) : 0;
+  const remainingAudits = userProfile
+    ? Math.max(0, userProfile.maxAuditsPerMonth - userProfile.auditsUsed)
+    : 0;
 
   return (
     <>
@@ -310,19 +322,30 @@ export default function AuditPage() {
                     {userProfile.planName} Plan - Monthly Usage
                   </h3>
                   <p className="text-sm text-gray-600">
-                    {userProfile.auditsUsed} / {userProfile.maxAuditsPerMonth === Infinity ? 'Unlimited' : userProfile.maxAuditsPerMonth} audits used
+                    {userProfile.auditsUsed} /{" "}
+                    {userProfile.maxAuditsPerMonth === Infinity
+                      ? "Unlimited"
+                      : userProfile.maxAuditsPerMonth}{" "}
+                    audits used
                     {userProfile.maxAuditsPerMonth !== Infinity && (
-                      <span className="ml-2">({remainingAudits} remaining)</span>
+                      <span className="ml-2">
+                        ({remainingAudits} remaining)
+                      </span>
                     )}
                   </p>
                 </div>
                 {userProfile.maxAuditsPerMonth !== Infinity && (
                   <div className="w-full sm:w-48 mt-2 sm:mt-0">
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
+                      <div
                         className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                        style={{ 
-                          width: `${Math.min((userProfile.auditsUsed / userProfile.maxAuditsPerMonth) * 100, 100)}%` 
+                        style={{
+                          width: `${Math.min(
+                            (userProfile.auditsUsed /
+                              userProfile.maxAuditsPerMonth) *
+                              100,
+                            100
+                          )}%`,
                         }}
                       ></div>
                     </div>
@@ -331,7 +354,11 @@ export default function AuditPage() {
               </div>
               {userProfile.auditsUsed >= userProfile.maxAuditsPerMonth && (
                 <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-                  ❌ You've reached your monthly audit limit. <a href="/pricing" className="underline font-semibold">Upgrade your plan</a> to continue.
+                  ❌ You've reached your monthly audit limit.{" "}
+                  <a href="/pricing" className="underline font-semibold">
+                    Upgrade your plan
+                  </a>{" "}
+                  to continue.
                 </div>
               )}
             </div>

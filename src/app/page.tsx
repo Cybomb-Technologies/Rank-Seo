@@ -54,11 +54,12 @@ export default function LandingPage() {
   }, []);
 
   const metaPropsData = {
-    title: "RANK SEO | AI-Powered SEO Audit Tool for Better Search Rankings",
+    title:
+      "Free SEO Audit Tool - Website SEO Checker with Site Rank & Audit Reports",
     description:
-      "Get comprehensive SEO audits with AI-powered analysis. Improve your website's search rankings with detailed reports, performance monitoring, and actionable insights.",
+      "Use our free SEO audit tools to analyze your website. Generate a detailed SEO audit report, check your SEO score, and monitor your site rank with actionable insights.",
     keyword:
-      "SEO audit tool, AI SEO analysis, website ranking, SEO optimization, search engine optimization",
+      "free seo audit tool, seo score checker, free website seo checker, seo audit report, site rank checker, keyword rank checker",
     url: "https://rankseo.in",
     image: "https://rankseo.in/SEO_LOGO.png",
   };
