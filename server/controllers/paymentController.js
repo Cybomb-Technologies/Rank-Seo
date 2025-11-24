@@ -7,7 +7,7 @@ const { jsPDF } = require("jspdf");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
-const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL || "https://sandbox.cashfree.com/pg/orders";
+const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL;
 const EXCHANGE_RATE = process.env.EXCHANGE_RATE ? Number(process.env.EXCHANGE_RATE) : 83.5;
 const TAX_RATE = 0.18; // 18% GST
 
