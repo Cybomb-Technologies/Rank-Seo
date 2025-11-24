@@ -7,7 +7,7 @@ const { jsPDF } = require("jspdf");
 const nodemailer = require("nodemailer");
 require("dotenv").config();
 
-const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL || "https://sandbox.cashfree.com/pg/orders";
+const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL;
 const EXCHANGE_RATE = process.env.EXCHANGE_RATE ? Number(process.env.EXCHANGE_RATE) : 83.5;
 const TAX_RATE = 0.18; // 18% GST
 
@@ -1041,7 +1041,7 @@ const generateInvoicePDFContent = (doc, user, payment, plan) => {
      .setFontSize(7)
      .text('Cybomb Technologies Pvt Ltd.', startX, companyDetailY);
 
-  doc.text('GSTIN: IN07AABCC1234D1Z2', startX, companyDetailY + 9);
+  doc.text('GSTIN: 33AANCC2184M1ZC', startX, companyDetailY + 9);
 
   const addressLines = doc.splitTextToSize(
     'Prime Plaza No.54/1, 1st street, Sripuram colony, St. Thomas Mount, Chennai, Tamil Nadu - 600 016, India',
