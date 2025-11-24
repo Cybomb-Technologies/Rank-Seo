@@ -41,17 +41,23 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 interface Keyword {
   keyword: string;
   intent: string;
-  difficulty: string;
-  frequency: string;
+  difficulty: number;
+  frequency?: string;
   relevance_score: number;
-  search_volume: string;
+  search_volume: number;
+  cpc?: number;
+  competition?: string;
   related_keywords: string[];
+  trend?: any;
+  serps?: any[];
 }
 
 interface KeywordSummary {
   primary_keywords: string[];
   secondary_keywords: string[];
-  keyword_gaps: string[];
+  long_tail_keywords: string[];
+  total_keywords: number;
+  keyword_intent_breakdown: Record<string, number>;
 }
 
 interface SEOData {
@@ -61,6 +67,27 @@ interface SEOData {
   summary: KeywordSummary;
   recommendations: string[];
   error?: string;
+  analysis?: any;
+  totalScraped?: number;
+  totalPagesAttempted?: number;
+  successfulScrapes?: number;
+}
+
+interface ApiResponse {
+  success: boolean;
+  data: SEOData;
+  mainUrl: string;
+  totalScraped: number;
+  totalPagesAttempted: number;
+  reportId: string;
+  usage: any;
+  analysis: {
+    sentToN8n: boolean;
+    dataOptimized: boolean;
+    fallback: boolean;
+    successfulScrapes: number;
+    failedScrapes: number;
+  };
 }
 
 export default function KeywordAnalyzer() {
@@ -68,6 +95,7 @@ export default function KeywordAnalyzer() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [seoData, setSeoData] = useState<SEOData | null>(null);
+  const [responseData, setResponseData] = useState<ApiResponse | null>(null);
   const [showAnimations, setShowAnimations] = useState(false);
   const [expandedKeywords, setExpandedKeywords] = useState<{
     [key: number]: boolean;
@@ -108,6 +136,7 @@ export default function KeywordAnalyzer() {
     setLoading(true);
     setError("");
     setSeoData(null);
+    setResponseData(null);
     setShowAnimations(false);
     setExpandedKeywords({});
 
@@ -123,7 +152,13 @@ export default function KeywordAnalyzer() {
       );
 
       if (response.data?.success && response.data.data) {
-        setSeoData({ ...response.data.data, url: response.data.mainUrl });
+        setResponseData(response.data);
+        setSeoData({ 
+          ...response.data.data, 
+          url: response.data.mainUrl,
+          totalScraped: response.data.totalScraped,
+          successfulScrapes: response.data.analysis?.successfulScrapes
+        });
       } else {
         setError(
           response.data.error || "An unexpected API response was received."
@@ -150,8 +185,18 @@ export default function KeywordAnalyzer() {
     }
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty.toLowerCase()) {
+  const getDifficultyColor = (difficulty: number) => {
+    // Convert number to string category
+    let difficultyCategory = "medium";
+    if (difficulty >= 70) {
+      difficultyCategory = "hard";
+    } else if (difficulty >= 40) {
+      difficultyCategory = "medium";
+    } else {
+      difficultyCategory = "easy";
+    }
+
+    switch (difficultyCategory) {
       case "easy":
         return "bg-gradient-to-r from-green-400 to-green-500 text-white shadow-lg shadow-green-200";
       case "medium":
@@ -163,8 +208,19 @@ export default function KeywordAnalyzer() {
     }
   };
 
+  const getDifficultyText = (difficulty: number): string => {
+    if (difficulty >= 70) {
+      return "Hard";
+    } else if (difficulty >= 40) {
+      return "Medium";
+    } else {
+      return "Easy";
+    }
+  };
+
   const getIntentColor = (intent: string) => {
-    switch (intent.toLowerCase()) {
+    const normalizedIntent = intent.toLowerCase();
+    switch (normalizedIntent) {
       case "commercial":
         return "bg-gradient-to-r from-blue-400 to-blue-500 text-white shadow-lg shadow-blue-200";
       case "informational":
@@ -173,9 +229,103 @@ export default function KeywordAnalyzer() {
         return "bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-lg shadow-orange-200";
       case "transactional":
         return "bg-gradient-to-r from-green-400 to-green-500 text-white shadow-lg shadow-green-200";
+      case "local":
+        return "bg-gradient-to-r from-indigo-400 to-indigo-500 text-white shadow-lg shadow-indigo-200";
+      case "long-tail":
+        return "bg-gradient-to-r from-pink-400 to-pink-500 text-white shadow-lg shadow-pink-200";
+      case "unknown":
+      case "to be determined":
+        return "bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-lg shadow-gray-200";
       default:
         return "bg-gradient-to-r from-gray-400 to-gray-500 text-white shadow-lg shadow-gray-200";
     }
+  };
+
+  const getIntentText = (intent: string): string => {
+    const normalizedIntent = intent.toLowerCase();
+    
+    // Map intent values to more user-friendly display text
+    const intentMap: Record<string, string> = {
+      'commercial': 'Commercial',
+      'informational': 'Informational',
+      'navigational': 'Navigational',
+      'transactional': 'Transactional',
+      'local': 'Local',
+      'long-tail': 'Long Tail',
+      'long_tail': 'Long Tail',
+      'unknown': 'To Be Determined',
+      'to be determined': 'To Be Determined',
+      '': 'To Be Determined'
+    };
+
+    return intentMap[normalizedIntent] || 'To Be Determined';
+  };
+
+  // Enhanced function to determine intent based on keyword characteristics
+  const inferIntentFromKeyword = (keyword: string): string => {
+    if (!keyword) return 'unknown';
+    
+    const kw = keyword.toLowerCase();
+    
+    // Commercial intent indicators
+    if (kw.includes('buy') || kw.includes('price') || kw.includes('cost') || 
+        kw.includes('deal') || kw.includes('discount') || kw.includes('cheap') ||
+        kw.includes('purchase') || kw.includes('order') || kw.includes('sale') ||
+        kw.includes('best') || kw.includes('top') || kw.includes('review') ||
+        kw.includes('comparison') || kw.includes('vs ') || kw.includes(' versus')) {
+      return 'commercial';
+    }
+    
+    // Transactional intent indicators
+    if (kw.includes('near me') || kw.includes('today') || kw.includes('now') ||
+        kw.includes('online') || kw.includes('shop') || kw.includes('store') ||
+        kw.includes('buy now') || kw.includes('order now') || kw.includes('purchase now') ||
+        kw.includes('for sale') || kw.includes('discount code') || kw.includes('coupon')) {
+      return 'transactional';
+    }
+    
+    // Informational intent indicators
+    if (kw.includes('what') || kw.includes('how') || kw.includes('why') ||
+        kw.includes('guide') || kw.includes('tips') || kw.includes('best way') ||
+        kw.includes('tutorial') || kw.includes('examples') || kw.includes('definition') ||
+        kw.includes('meaning') || kw.includes('benefits') || kw.includes('advantages') ||
+        kw.includes('disadvantages') || kw.includes('pros and cons')) {
+      return 'informational';
+    }
+    
+    // Local intent indicators
+    if (kw.includes('near') || kw.includes('in ') || kw.match(/\b[a-z]+\s+[a-z]+\s+near me\b/i) ||
+        kw.includes('city') || kw.includes('area') || kw.includes('location') ||
+        kw.includes('find') || kw.includes('find a') || kw.includes('find an')) {
+      return 'local';
+    }
+    
+    // Long-tail indicators (typically 3+ words)
+    if (kw.split(' ').length >= 3) {
+      return 'long-tail';
+    }
+    
+    // Navigational intent (brand names, specific websites)
+    if (kw.includes('.com') || kw.includes('.org') || kw.includes('.net') ||
+        kw.split(' ').length === 1 && kw.length > 2) {
+      return 'navigational';
+    }
+    
+    return 'unknown';
+  };
+
+  // Function to get the best intent for display
+  const getDisplayIntent = (keyword: string, backendIntent: string): string => {
+    // If backend provides a valid intent, use it
+    if (backendIntent && 
+        backendIntent !== 'unknown' && 
+        backendIntent !== 'to be determined' && 
+        backendIntent !== '') {
+      return backendIntent;
+    }
+    
+    // Otherwise, infer from keyword
+    return inferIntentFromKeyword(keyword);
   };
 
   const toggleKeywordExpansion = (index: number) => {
@@ -191,7 +341,20 @@ export default function KeywordAnalyzer() {
 
   // Use the totalScraped count from the backend response
   const getTotalPageCount = (data: SEOData | null): number => {
-    return data?.pages?.totalScraped || 7;
+    return data?.totalScraped || 
+           data?.successfulScrapes || 
+           responseData?.totalScraped || 
+           responseData?.analysis?.successfulScrapes || 
+           0;
+  };
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    } else if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
   };
 
   const metaPropsData = {
@@ -475,135 +638,162 @@ export default function KeywordAnalyzer() {
                 <CardContent className="p-0">
                   {seoData.keywords?.length > 0 ? (
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-8">
-                      {seoData.keywords.map((kw, i) => (
-                        <Card
-                          key={i}
-                          className="group hover:shadow-2xl transition-all duration-500 border border-gray-200 hover:border-teal-300 relative overflow-hidden transform hover:-translate-y-1 cursor-pointer bg-white/95 backdrop-blur-lg"
-                          onMouseEnter={() => setHoveredCard(100 + i)}
-                          onMouseLeave={() => setHoveredCard(null)}
-                        >
-                          <div
-                            className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-cyan-400 transition-transform duration-300 ${
-                              hoveredCard === 100 + i
-                                ? "scale-x-100"
-                                : "scale-x-0"
-                            }`}
-                          ></div>
-                          <CardHeader className="pb-4">
-                            <div className="flex justify-between items-start">
-                              <CardTitle className="text-lg font-bold capitalize text-gray-900 group-hover:text-teal-700 transition-colors flex items-center gap-2">
-                                <Sparkles className="h-4 w-4 text-teal-500" />
-                                {kw.keyword}
-                              </CardTitle>
-                              <div className="flex gap-2">
-                                <Badge
-                                  className={`${getIntentColor(
-                                    kw.intent
-                                  )} transition-transform duration-300 hover:scale-105`}
-                                >
-                                  {kw.intent}
-                                </Badge>
-                                {kw.difficulty && (
+                      {seoData.keywords.map((kw, i) => {
+                        // Use the improved intent detection
+                        const displayIntent = getDisplayIntent(kw.keyword, kw.intent);
+                        
+                        return (
+                          <Card
+                            key={i}
+                            className="group hover:shadow-2xl transition-all duration-500 border border-gray-200 hover:border-teal-300 relative overflow-hidden transform hover:-translate-y-1 cursor-pointer bg-white/95 backdrop-blur-lg"
+                            onMouseEnter={() => setHoveredCard(100 + i)}
+                            onMouseLeave={() => setHoveredCard(null)}
+                          >
+                            <div
+                              className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-400 to-cyan-400 transition-transform duration-300 ${
+                                hoveredCard === 100 + i
+                                  ? "scale-x-100"
+                                  : "scale-x-0"
+                              }`}
+                            ></div>
+                            <CardHeader className="pb-4">
+                              <div className="flex justify-between items-start">
+                                <CardTitle className="text-lg font-bold capitalize text-gray-900 group-hover:text-teal-700 transition-colors flex items-center gap-2">
+                                  <Sparkles className="h-4 w-4 text-teal-500" />
+                                  {kw.keyword}
+                                </CardTitle>
+                                <div className="flex gap-2">
                                   <Badge
-                                    className={`${getDifficultyColor(
-                                      kw.difficulty
+                                    className={`${getIntentColor(
+                                      displayIntent
                                     )} transition-transform duration-300 hover:scale-105`}
                                   >
-                                    {kw.difficulty}
+                                    {getIntentText(displayIntent)}
                                   </Badge>
-                                )}
-                              </div>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="space-y-4">
-                            {kw.frequency && (
-                              <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
-                                <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                                  <TrendingUp className="h-4 w-4 text-teal-500" />
-                                  Usage Frequency
-                                </span>
-                                <span className="font-bold text-gray-900 bg-white px-2 py-1 rounded-md shadow-sm">
-                                  {kw.frequency}
-                                </span>
-                              </div>
-                            )}
-                            {kw.relevance_score > 0 && (
-                              <div className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-sm font-medium text-gray-700">
-                                    Relevance Score
-                                  </span>
-                                  <span className="font-bold text-gray-900">
-                                    {kw.relevance_score}%
-                                  </span>
-                                </div>
-                                <Progress
-                                  value={kw.relevance_score}
-                                  className="w-full h-2 bg-gray-200"
-                                />
-                              </div>
-                            )}
-                            {kw.search_volume && (
-                              <div className="flex justify-between items-center p-2 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg">
-                                <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                                  <BarChart3 className="h-4 w-4 text-blue-500" />
-                                  Monthly Search Volume
-                                </span>
-                                <span className="font-bold text-gray-900 flex items-center gap-1">
-                                  {kw.search_volume.toLocaleString()}
-                                </span>
-                              </div>
-                            )}
-                            {kw.related_keywords &&
-                              kw.related_keywords.length > 0 && (
-                                <div>
-                                  <span className="text-sm font-medium text-gray-700 block mb-2">
-                                    Related Keywords
-                                  </span>
-                                  <div className="flex flex-wrap gap-2 mb-3">
-                                    {kw.related_keywords
-                                      .slice(
-                                        0,
-                                        expandedKeywords[i]
-                                          ? kw.related_keywords.length
-                                          : 4
-                                      )
-                                      .map((related, idx) => (
-                                        <Badge
-                                          key={idx}
-                                          variant="outline"
-                                          className="text-xs border-teal-200 text-teal-700 bg-teal-50 transition-all duration-300 hover:bg-teal-100 hover:scale-105"
-                                        >
-                                          {related}
-                                        </Badge>
-                                      ))}
-                                  </div>
-                                  {kw.related_keywords.length > 4 && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="text-xs text-teal-600 hover:text-teal-700 hover:bg-teal-50 p-1 h-auto w-full border border-dashed border-teal-200"
-                                      onClick={() => toggleKeywordExpansion(i)}
+                                  {typeof kw.difficulty === 'number' && (
+                                    <Badge
+                                      className={`${getDifficultyColor(
+                                        kw.difficulty
+                                      )} transition-transform duration-300 hover:scale-105`}
                                     >
-                                      {expandedKeywords[i] ? (
-                                        <>
-                                          <ChevronUp className="h-3 w-3 mr-1" />
-                                          Show Less
-                                        </>
-                                      ) : (
-                                        <>
-                                          <ChevronDown className="h-3 w-3 mr-1" />
-                                          +{kw.related_keywords.length - 4} more
-                                          keywords
-                                        </>
-                                      )}
-                                    </Button>
+                                      {getDifficultyText(kw.difficulty)}
+                                    </Badge>
                                   )}
                                 </div>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              {kw.relevance_score > 0 && (
+                                <div className="space-y-2">
+                                  <div className="flex justify-between items-center">
+                                    <span className="text-sm font-medium text-gray-700">
+                                      Relevance Score
+                                    </span>
+                                    <span className="font-bold text-gray-900">
+                                      {kw.relevance_score}%
+                                    </span>
+                                  </div>
+                                  <Progress
+                                    value={kw.relevance_score}
+                                    className="w-full h-2 bg-gray-200"
+                                  />
+                                </div>
                               )}
-                          </CardContent>
-                        </Card>
-                      ))}
+                              {typeof kw.search_volume === 'number' && kw.search_volume > 0 && (
+                                <div className="flex justify-between items-center p-2 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg">
+                                  <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                                    <BarChart3 className="h-4 w-4 text-blue-500" />
+                                    Monthly Search Volume
+                                  </span>
+                                  <span className="font-bold text-gray-900 flex items-center gap-1">
+                                    {formatNumber(kw.search_volume)}
+                                  </span>
+                                </div>
+                              )}
+                              {typeof kw.difficulty === 'number' && (
+                                <div className="flex justify-between items-center p-2 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg">
+                                  <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                                    <Target className="h-4 w-4 text-amber-500" />
+                                    Keyword Difficulty
+                                  </span>
+                                  <span className="font-bold text-gray-900">
+                                    {kw.difficulty}/100
+                                  </span>
+                                </div>
+                              )}
+                              {typeof kw.cpc === 'number' && kw.cpc > 0 && (
+                                <div className="flex justify-between items-center p-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
+                                  <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                                    <TrendingUp className="h-4 w-4 text-green-500" />
+                                    Avg. CPC
+                                  </span>
+                                  <span className="font-bold text-gray-900">
+                                    ${kw.cpc.toFixed(2)}
+                                  </span>
+                                </div>
+                              )}
+                              {kw.competition && (
+                                <div className="flex justify-between items-center p-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
+                                  <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                                    <BarChart className="h-4 w-4 text-purple-500" />
+                                    Competition
+                                  </span>
+                                  <span className="font-bold text-gray-900 capitalize">
+                                    {kw.competition.toLowerCase()}
+                                  </span>
+                                </div>
+                              )}
+                              {kw.related_keywords &&
+                                kw.related_keywords.length > 0 && (
+                                  <div>
+                                    <span className="text-sm font-medium text-gray-700 block mb-2">
+                                      Related Keywords
+                                    </span>
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                      {kw.related_keywords
+                                        .slice(
+                                          0,
+                                          expandedKeywords[i]
+                                            ? kw.related_keywords.length
+                                            : 4
+                                        )
+                                        .map((related, idx) => (
+                                          <Badge
+                                            key={idx}
+                                            variant="outline"
+                                            className="text-xs border-teal-200 text-teal-700 bg-teal-50 transition-all duration-300 hover:bg-teal-100 hover:scale-105"
+                                          >
+                                            {related}
+                                          </Badge>
+                                        ))}
+                                    </div>
+                                    {kw.related_keywords.length > 4 && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-xs text-teal-600 hover:text-teal-700 hover:bg-teal-50 p-1 h-auto w-full border border-dashed border-teal-200"
+                                        onClick={() => toggleKeywordExpansion(i)}
+                                      >
+                                        {expandedKeywords[i] ? (
+                                          <>
+                                            <ChevronUp className="h-3 w-3 mr-1" />
+                                            Show Less
+                                          </>
+                                        ) : (
+                                          <>
+                                            <ChevronDown className="h-3 w-3 mr-1" />
+                                            +{kw.related_keywords.length - 4} more
+                                            keywords
+                                          </>
+                                        )}
+                                      </Button>
+                                    )}
+                                  </div>
+                                )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
                   ) : (
                     <div className="p-12 text-center">
@@ -643,12 +833,12 @@ export default function KeywordAnalyzer() {
                       description: "Supporting terms for content depth",
                     },
                     {
-                      title: "Keyword Opportunities",
+                      title: "Long-tail Keywords",
                       icon: Zap,
-                      keywords: seoData.summary.keyword_gaps,
+                      keywords: seoData.summary.long_tail_keywords,
                       gradient: "from-amber-500 to-amber-600",
                       bgGradient: "from-amber-50 to-amber-100",
-                      description: "Untapped potential for growth",
+                      description: "Specific, low-competition terms",
                     },
                   ].map((section, index) => (
                     <Card

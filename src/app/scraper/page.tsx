@@ -254,7 +254,7 @@ export default function ScraperPage() {
       if (!token) return;
 
       // Use /api/crawl/usage as defined in scraperRoutes.js
-      const response = await fetch(`${API_URL}/api/crawl/usage`, {
+      const response = await fetch(`${API_URL}/api/scraper/crawl/usage`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -321,7 +321,7 @@ export default function ScraperPage() {
     try {
       // Use /api/crawl as defined in scraperRoutes.js
       const response = await axios.post<ApiResponse>(
-        `${API_URL}/api/crawl`,
+        `${API_URL}/api/scraper/crawl`,
         { url },
         {
           headers: {
