@@ -9,8 +9,10 @@ interface BusinessName {
   style: string;
   tagline: string;
 }
+import Metatags from "../../SEO/metatags";
 
-const N8N_WEBHOOK_URL = "https://n8n.cybomb.com/webhook/Business-name-generator";
+const N8N_WEBHOOK_URL =
+  "https://n8n.cybomb.com/webhook/Business-name-generator";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function BusinessNameGeneratorPage() {
@@ -41,7 +43,9 @@ export default function BusinessNameGeneratorPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const saveNamesToDatabase = async (namesToSave: BusinessName[]): Promise<boolean> => {
+  const saveNamesToDatabase = async (
+    namesToSave: BusinessName[]
+  ): Promise<boolean> => {
     if (!namesToSave.length) return false;
 
     const token = getToken();
@@ -109,14 +113,17 @@ export default function BusinessNameGeneratorPage() {
 
     try {
       // Generate names through backend to check usage limits
-      const generateResponse = await fetch(`${API_BASE_URL}/api/business/generate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ industry, audience, style }),
-      });
+      const generateResponse = await fetch(
+        `${API_BASE_URL}/api/business/generate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ industry, audience, style }),
+        }
+      );
 
       if (!generateResponse.ok) {
         if (generateResponse.status === 401) {
@@ -126,14 +133,17 @@ export default function BusinessNameGeneratorPage() {
         }
         if (generateResponse.status === 403) {
           const errorData = await generateResponse.json();
-          alert(errorData.message || "Usage limit reached. Please upgrade your plan.");
+          alert(
+            errorData.message ||
+              "Usage limit reached. Please upgrade your plan."
+          );
           return;
         }
         throw new Error(`Generation failed: ${generateResponse.status}`);
       }
 
       const responseData = await generateResponse.json();
-      
+
       const businessNames = responseData.data.names.map((item: any) => ({
         name: item.name || "Unnamed",
         style: item.style || "General",
@@ -144,7 +154,6 @@ export default function BusinessNameGeneratorPage() {
 
       // Save to MongoDB in background (silently)
       saveNamesToDatabase(businessNames);
-
     } catch (err: any) {
       console.error("Generation failed:", err.message);
       alert("Name generation failed. Please try again.");
@@ -172,18 +181,18 @@ export default function BusinessNameGeneratorPage() {
   ];
 
   const metaPropsData = {
-    title: "AI Business Name Generator | Creative Company Name Ideas",
+    title: "Business Name Generator - Creative Company & Brand Name Ideas",
     description:
-      "Generate unique business names with AI-powered name generator. Get creative company names, taglines, and brand ideas for your startup or business.",
+      "Generate unique business and brand names instantly with our AI-powered name generator. Get creative company names, taglines, and branding ideas for your startup or business venture.",
     keyword:
-      "business name generator, company name ideas, AI name generator, brand name generator, startup names",
+      "company naming ideas, business name generator, brand name generator, business name builder, business name ideas",
     url: "https://rankseo.in/business-name-generator",
     image: "https://rankseo.in/SEO_LOGO.png",
   };
 
   return (
     <>
-      {/* <Metatags metaProps={metaPropsData} /> */}
+      <Metatags metaProps={metaPropsData} />
       <div className="min-h-screen pt-12 sm:pt-16 bg-gradient-to-br from-background via-color-mix(in oklab, var(--primary) 2%, transparent) to-color-mix(in oklab, var(--secondary) 1%, transparent) relative overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute top-20 left-5% w-40 h-40 bg-color-mix(in oklab, var(--primary) 8%, transparent) rounded-full blur-3xl animate-pulse-slow"></div>

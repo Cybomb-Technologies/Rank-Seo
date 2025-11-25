@@ -12,7 +12,6 @@ import {
   Building2,
   ArrowRight,
 } from "lucide-react";
-import Metatags from "../../SEO/metatags";
 
 interface BusinessName {
   name: string;
@@ -51,7 +50,7 @@ function GeneratorHeader({
                 <Sparkles className="h-5 w-5 text-primary absolute -top-1 -right-1" />
               </div>
               <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                AI Name Generator
+                Business Name Generator
               </h1>
             </div>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto leading-relaxed">
@@ -199,16 +198,6 @@ export default function BusinessNameGeneratorPage() {
   const [loadingStep, setLoadingStep] = useState("Initializing...");
 
   const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const metaPropsData = {
-    title: "AI Business Name Generator | Creative Company Name Ideas",
-    description:
-      "Generate unique business names with AI-powered name generator. Get creative company names, taglines, and brand ideas for your startup or business.",
-    keyword:
-      "business name generator, company name ideas, AI name generator, brand name generator, startup names",
-    url: "https://rankseo.in/business-name-generator",
-    image: "https://rankseo.in/SEO_LOGO.png",
-  };
 
   const startProgressAnimation = () => {
     setProgress(0);
