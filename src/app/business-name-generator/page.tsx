@@ -181,7 +181,7 @@ export default function BusinessNameGeneratorPage() {
   ];
 
   const metaPropsData = {
-    title: "Business Name Generator - Creative Company & Brand Name Ideas",
+    title: "Business Name Generator - Creative Company & Brand Ideas",
     description:
       "Generate unique business and brand names instantly with our AI-powered name generator. Get creative company names, taglines, and branding ideas for your startup or business venture.",
     keyword:
