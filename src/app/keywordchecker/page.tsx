@@ -153,11 +153,11 @@ export default function KeywordAnalyzer() {
 
       if (response.data?.success && response.data.data) {
         setResponseData(response.data);
-        setSeoData({ 
-          ...response.data.data, 
+        setSeoData({
+          ...response.data.data,
           url: response.data.mainUrl,
           totalScraped: response.data.totalScraped,
-          successfulScrapes: response.data.analysis?.successfulScrapes
+          successfulScrapes: response.data.analysis?.successfulScrapes,
         });
       } else {
         setError(
@@ -173,7 +173,9 @@ export default function KeywordAnalyzer() {
       }
       if (err.response?.status === 403) {
         const errorData = err.response.data;
-        setError(errorData.error || "Usage limit reached. Please upgrade your plan.");
+        setError(
+          errorData.error || "Usage limit reached. Please upgrade your plan."
+        );
         return;
       }
       const errorMessage =
@@ -243,87 +245,134 @@ export default function KeywordAnalyzer() {
 
   const getIntentText = (intent: string): string => {
     const normalizedIntent = intent.toLowerCase();
-    
+
     // Map intent values to more user-friendly display text
     const intentMap: Record<string, string> = {
-      'commercial': 'Commercial',
-      'informational': 'Informational',
-      'navigational': 'Navigational',
-      'transactional': 'Transactional',
-      'local': 'Local',
-      'long-tail': 'Long Tail',
-      'long_tail': 'Long Tail',
-      'unknown': 'To Be Determined',
-      'to be determined': 'To Be Determined',
-      '': 'To Be Determined'
+      commercial: "Commercial",
+      informational: "Informational",
+      navigational: "Navigational",
+      transactional: "Transactional",
+      local: "Local",
+      "long-tail": "Long Tail",
+      long_tail: "Long Tail",
+      unknown: "To Be Determined",
+      "to be determined": "To Be Determined",
+      "": "To Be Determined",
     };
 
-    return intentMap[normalizedIntent] || 'To Be Determined';
+    return intentMap[normalizedIntent] || "To Be Determined";
   };
 
   // Enhanced function to determine intent based on keyword characteristics
   const inferIntentFromKeyword = (keyword: string): string => {
-    if (!keyword) return 'unknown';
-    
+    if (!keyword) return "unknown";
+
     const kw = keyword.toLowerCase();
-    
+
     // Commercial intent indicators
-    if (kw.includes('buy') || kw.includes('price') || kw.includes('cost') || 
-        kw.includes('deal') || kw.includes('discount') || kw.includes('cheap') ||
-        kw.includes('purchase') || kw.includes('order') || kw.includes('sale') ||
-        kw.includes('best') || kw.includes('top') || kw.includes('review') ||
-        kw.includes('comparison') || kw.includes('vs ') || kw.includes(' versus')) {
-      return 'commercial';
+    if (
+      kw.includes("buy") ||
+      kw.includes("price") ||
+      kw.includes("cost") ||
+      kw.includes("deal") ||
+      kw.includes("discount") ||
+      kw.includes("cheap") ||
+      kw.includes("purchase") ||
+      kw.includes("order") ||
+      kw.includes("sale") ||
+      kw.includes("best") ||
+      kw.includes("top") ||
+      kw.includes("review") ||
+      kw.includes("comparison") ||
+      kw.includes("vs ") ||
+      kw.includes(" versus")
+    ) {
+      return "commercial";
     }
-    
+
     // Transactional intent indicators
-    if (kw.includes('near me') || kw.includes('today') || kw.includes('now') ||
-        kw.includes('online') || kw.includes('shop') || kw.includes('store') ||
-        kw.includes('buy now') || kw.includes('order now') || kw.includes('purchase now') ||
-        kw.includes('for sale') || kw.includes('discount code') || kw.includes('coupon')) {
-      return 'transactional';
+    if (
+      kw.includes("near me") ||
+      kw.includes("today") ||
+      kw.includes("now") ||
+      kw.includes("online") ||
+      kw.includes("shop") ||
+      kw.includes("store") ||
+      kw.includes("buy now") ||
+      kw.includes("order now") ||
+      kw.includes("purchase now") ||
+      kw.includes("for sale") ||
+      kw.includes("discount code") ||
+      kw.includes("coupon")
+    ) {
+      return "transactional";
     }
-    
+
     // Informational intent indicators
-    if (kw.includes('what') || kw.includes('how') || kw.includes('why') ||
-        kw.includes('guide') || kw.includes('tips') || kw.includes('best way') ||
-        kw.includes('tutorial') || kw.includes('examples') || kw.includes('definition') ||
-        kw.includes('meaning') || kw.includes('benefits') || kw.includes('advantages') ||
-        kw.includes('disadvantages') || kw.includes('pros and cons')) {
-      return 'informational';
+    if (
+      kw.includes("what") ||
+      kw.includes("how") ||
+      kw.includes("why") ||
+      kw.includes("guide") ||
+      kw.includes("tips") ||
+      kw.includes("best way") ||
+      kw.includes("tutorial") ||
+      kw.includes("examples") ||
+      kw.includes("definition") ||
+      kw.includes("meaning") ||
+      kw.includes("benefits") ||
+      kw.includes("advantages") ||
+      kw.includes("disadvantages") ||
+      kw.includes("pros and cons")
+    ) {
+      return "informational";
     }
-    
+
     // Local intent indicators
-    if (kw.includes('near') || kw.includes('in ') || kw.match(/\b[a-z]+\s+[a-z]+\s+near me\b/i) ||
-        kw.includes('city') || kw.includes('area') || kw.includes('location') ||
-        kw.includes('find') || kw.includes('find a') || kw.includes('find an')) {
-      return 'local';
+    if (
+      kw.includes("near") ||
+      kw.includes("in ") ||
+      kw.match(/\b[a-z]+\s+[a-z]+\s+near me\b/i) ||
+      kw.includes("city") ||
+      kw.includes("area") ||
+      kw.includes("location") ||
+      kw.includes("find") ||
+      kw.includes("find a") ||
+      kw.includes("find an")
+    ) {
+      return "local";
     }
-    
+
     // Long-tail indicators (typically 3+ words)
-    if (kw.split(' ').length >= 3) {
-      return 'long-tail';
+    if (kw.split(" ").length >= 3) {
+      return "long-tail";
     }
-    
+
     // Navigational intent (brand names, specific websites)
-    if (kw.includes('.com') || kw.includes('.org') || kw.includes('.net') ||
-        kw.split(' ').length === 1 && kw.length > 2) {
-      return 'navigational';
+    if (
+      kw.includes(".com") ||
+      kw.includes(".org") ||
+      kw.includes(".net") ||
+      (kw.split(" ").length === 1 && kw.length > 2)
+    ) {
+      return "navigational";
     }
-    
-    return 'unknown';
+
+    return "unknown";
   };
 
   // Function to get the best intent for display
   const getDisplayIntent = (keyword: string, backendIntent: string): string => {
     // If backend provides a valid intent, use it
-    if (backendIntent && 
-        backendIntent !== 'unknown' && 
-        backendIntent !== 'to be determined' && 
-        backendIntent !== '') {
+    if (
+      backendIntent &&
+      backendIntent !== "unknown" &&
+      backendIntent !== "to be determined" &&
+      backendIntent !== ""
+    ) {
       return backendIntent;
     }
-    
+
     // Otherwise, infer from keyword
     return inferIntentFromKeyword(keyword);
   };
@@ -341,28 +390,30 @@ export default function KeywordAnalyzer() {
 
   // Use the totalScraped count from the backend response
   const getTotalPageCount = (data: SEOData | null): number => {
-    return data?.totalScraped || 
-           data?.successfulScrapes || 
-           responseData?.totalScraped || 
-           responseData?.analysis?.successfulScrapes || 
-           0;
+    return (
+      data?.totalScraped ||
+      data?.successfulScrapes ||
+      responseData?.totalScraped ||
+      responseData?.analysis?.successfulScrapes ||
+      0
+    );
   };
 
   const formatNumber = (num: number): string => {
     if (num >= 1000000) {
-      return (num / 1000000).toFixed(1) + 'M';
+      return (num / 1000000).toFixed(1) + "M";
     } else if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
+      return (num / 1000).toFixed(1) + "K";
     }
     return num.toString();
   };
 
   const metaPropsData = {
-    title: "AI Keyword Analysis Tool | Advanced SEO Keyword Research",
+    title: "SEO Keyword Research Tool - Advanced SEO Keyword Analysis",
     description:
-      "Perform comprehensive keyword analysis with AI-powered insights. Get search volume, difficulty scores, intent analysis, and optimization recommendations.",
+      "Perform comprehensive keyword analysis with AI-powered insights. Get search volume data, difficulty scores, intent analysis, and optimization recommendations for better SEO results.",
     keyword:
-      "keyword analysis tool, SEO keyword research, keyword analyzer, search intent analysis, keyword difficulty",
+      "free keyword research tool, free keyword analysis tool, keyword planner free, seo keyword analysis, keyword search volumes, seo and keyword search",
     url: "https://rankseo.in/keywordchecker",
     image: "https://rankseo.in/SEO_LOGO.png",
   };
@@ -640,8 +691,11 @@ export default function KeywordAnalyzer() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-8">
                       {seoData.keywords.map((kw, i) => {
                         // Use the improved intent detection
-                        const displayIntent = getDisplayIntent(kw.keyword, kw.intent);
-                        
+                        const displayIntent = getDisplayIntent(
+                          kw.keyword,
+                          kw.intent
+                        );
+
                         return (
                           <Card
                             key={i}
@@ -670,7 +724,7 @@ export default function KeywordAnalyzer() {
                                   >
                                     {getIntentText(displayIntent)}
                                   </Badge>
-                                  {typeof kw.difficulty === 'number' && (
+                                  {typeof kw.difficulty === "number" && (
                                     <Badge
                                       className={`${getDifficultyColor(
                                         kw.difficulty
@@ -699,18 +753,19 @@ export default function KeywordAnalyzer() {
                                   />
                                 </div>
                               )}
-                              {typeof kw.search_volume === 'number' && kw.search_volume > 0 && (
-                                <div className="flex justify-between items-center p-2 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg">
-                                  <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                                    <BarChart3 className="h-4 w-4 text-blue-500" />
-                                    Monthly Search Volume
-                                  </span>
-                                  <span className="font-bold text-gray-900 flex items-center gap-1">
-                                    {formatNumber(kw.search_volume)}
-                                  </span>
-                                </div>
-                              )}
-                              {typeof kw.difficulty === 'number' && (
+                              {typeof kw.search_volume === "number" &&
+                                kw.search_volume > 0 && (
+                                  <div className="flex justify-between items-center p-2 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg">
+                                    <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                                      <BarChart3 className="h-4 w-4 text-blue-500" />
+                                      Monthly Search Volume
+                                    </span>
+                                    <span className="font-bold text-gray-900 flex items-center gap-1">
+                                      {formatNumber(kw.search_volume)}
+                                    </span>
+                                  </div>
+                                )}
+                              {typeof kw.difficulty === "number" && (
                                 <div className="flex justify-between items-center p-2 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg">
                                   <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
                                     <Target className="h-4 w-4 text-amber-500" />
@@ -721,7 +776,7 @@ export default function KeywordAnalyzer() {
                                   </span>
                                 </div>
                               )}
-                              {typeof kw.cpc === 'number' && kw.cpc > 0 && (
+                              {typeof kw.cpc === "number" && kw.cpc > 0 && (
                                 <div className="flex justify-between items-center p-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
                                   <span className="text-sm font-medium text-gray-700 flex items-center gap-1">
                                     <TrendingUp className="h-4 w-4 text-green-500" />
@@ -772,7 +827,9 @@ export default function KeywordAnalyzer() {
                                         variant="ghost"
                                         size="sm"
                                         className="text-xs text-teal-600 hover:text-teal-700 hover:bg-teal-50 p-1 h-auto w-full border border-dashed border-teal-200"
-                                        onClick={() => toggleKeywordExpansion(i)}
+                                        onClick={() =>
+                                          toggleKeywordExpansion(i)
+                                        }
                                       >
                                         {expandedKeywords[i] ? (
                                           <>
@@ -782,8 +839,8 @@ export default function KeywordAnalyzer() {
                                         ) : (
                                           <>
                                             <ChevronDown className="h-3 w-3 mr-1" />
-                                            +{kw.related_keywords.length - 4} more
-                                            keywords
+                                            +{kw.related_keywords.length - 4}{" "}
+                                            more keywords
                                           </>
                                         )}
                                       </Button>

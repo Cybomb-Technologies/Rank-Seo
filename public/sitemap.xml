@@ -60,8 +60,62 @@
     <priority>0.1</priority>
   </url>
 
-      <url>
+    <url>
     <loc>https://rankseo.in/scraper</loc>
+    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
+    <priority>0.1</priority>
+  </url>
+
+  <url>
+    <loc>https://rankseo.in/business-name-generator</loc>
+    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
+    <priority>0.1</priority>
+  </url>
+
+    <url>
+    <loc>https://rankseo.in/keywordchecker</loc>
+    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
+    <priority>0.1</priority>
+  </url>
+
+    <url>
+    <loc>https://rankseo.in/profile/support</loc>
+    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
+    <priority>0.1</priority>
+  </url>
+
+    <url>
+    <loc>https://rankseo.in/profile</loc>
+    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
+    <priority>0.1</priority>
+  </url>
+
+    <url>
+    <loc>https://rankseo.in/profile/reports</loc>
+    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
+    <priority>0.1</priority>
+  </url>
+
+    <url>
+    <loc>https://rankseo.in/profile/dashboard</loc>
+    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
+    <priority>0.1</priority>
+  </url>
+
+    <url>
+    <loc>https://rankseo.in/login</loc>
+    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
+    <priority>0.1</priority>
+  </url>
+
+    <url>
+    <loc>https://rankseo.in/signup</loc>
+    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
+    <priority>0.1</priority>
+  </url>
+
+    <url>
+    <loc>https://rankseo.in/profile/billing</loc>
     <lastmod>2025-11-11T06:00:00+00:00</lastmod>
     <priority>0.1</priority>
   </url>

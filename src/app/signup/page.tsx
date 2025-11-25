@@ -1,15 +1,29 @@
 "use client";
 import React, { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { showSuccessAlert, showErrorAlert } from "@/components/Utils/alert-util";
+import {
+  showSuccessAlert,
+  showErrorAlert,
+} from "@/components/Utils/alert-util";
 import Link from "next/link";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import Metatags from "../../SEO/metatags";
 
 const SignupPage = () => {
+  const metaPropsData = {
+    title: "Sign Up for RANK SEO - Create Your SEO Analytics Account",
+    description:
+      "Join RANK SEO and create your account to access powerful SEO audit tools, website performance analytics, and comprehensive digital marketing insights. Start optimizing your online presence today.",
+    keyword:
+      "free seo tools signup, seo analytics platform, website audit tool, rank seo registration, seo dashboard access",
+    url: "https://rankseo.in/signup",
+    image: "https://rankseo.in/SEO_LOGO.png",
+  };
+
   const [isLoginMode, setIsLoginMode] = useState(false);
   const [showOtpField, setShowOtpField] = useState(false);
   const [otp, setOtp] = useState("");
-  
+
   const [signupFormData, setSignupFormData] = useState({
     name: "",
     email: "",
@@ -36,7 +50,7 @@ const SignupPage = () => {
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  
+
     if (!isLoginMode && !showOtpField && !signupFormData.name.trim()) {
       newErrors.name = "Full Name is required.";
     }
@@ -46,16 +60,17 @@ const SignupPage = () => {
     if (isLoginMode && !loginFormData.password.trim()) {
       newErrors.password = "Password is required.";
     }
-  
-    const emailToValidate = isLoginMode ? loginFormData.email : signupFormData.email;
+
+    const emailToValidate = isLoginMode
+      ? loginFormData.email
+      : signupFormData.email;
     if (!emailRegex.test(emailToValidate)) {
       newErrors.email = "Please enter a valid email address.";
     }
-  
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
 
   const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
@@ -134,142 +149,183 @@ const SignupPage = () => {
     "flex items-center justify-center w-full py-2 px-4 bg-gray-100 text-gray-800 rounded-full font-semibold transition-transform transform hover:scale-105 duration-200 cursor-pointer shadow-md";
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="bg-white sm:p-8 mt-10 rounded-lg shadow-lg w-full max-w-md">
-        <h2 className="text-2xl font-bold text-center mb-6">
-          {isLoginMode ? "Login to your Account" : "Create an Account"}
-        </h2>
-        <form onSubmit={isLoginMode ? handleLogin : showOtpField ? handleVerifyOtp : handleSignup} className="space-y-4">
-          {!isLoginMode && !showOtpField && (
-            <>
+    <>
+      <Metatags metaProps={metaPropsData} />
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="bg-white sm:p-8 mt-10 rounded-lg shadow-lg w-full max-w-md">
+          <h2 className="text-2xl font-bold text-center mb-6">
+            {isLoginMode ? "Login to your Account" : "Create an Account"}
+          </h2>
+          <form
+            onSubmit={
+              isLoginMode
+                ? handleLogin
+                : showOtpField
+                ? handleVerifyOtp
+                : handleSignup
+            }
+            className="space-y-4"
+          >
+            {!isLoginMode && !showOtpField && (
+              <>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Full Name"
+                  value={signupFormData.name}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg"
+                />
+                <input
+                  type="text"
+                  name="phone"
+                  placeholder="Phone Number (Optional)"
+                  value={signupFormData.phone}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg"
+                />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={signupFormData.email}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg"
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                )}
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={signupFormData.password}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg"
+                />
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                )}
+              </>
+            )}
+
+            {isLoginMode && (
+              <>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  value={loginFormData.email}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg"
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                )}
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={loginFormData.password}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded-lg"
+                />
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                )}
+                <div className="flex justify-end">
+                  <Link
+                    href="/forgotpassword"
+                    className="text-sm text-blue-600 font-medium hover:underline"
+                  >
+                    Forgotten your password?
+                  </Link>
+                </div>
+              </>
+            )}
+
+            {showOtpField && (
               <input
                 type="text"
-                name="name"
-                placeholder="Full Name"
-                value={signupFormData.name}
-                onChange={handleChange}
+                name="otp"
+                placeholder="Enter OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
                 className="w-full px-4 py-2 border rounded-lg"
               />
-              <input
-                type="text"
-                name="phone"
-                placeholder="Phone Number (Optional)"
-                value={signupFormData.phone}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={signupFormData.email}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={signupFormData.password}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-              {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-            </>
-          )}
+            )}
 
-          {isLoginMode && (
-            <>
-              <input
-                type="email"
-                name="email"
-                placeholder="Email"
-                value={loginFormData.email}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={loginFormData.password}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-              {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-              <div className="flex justify-end">
-              <Link
-                href="/forgotpassword"
-                className="text-sm text-blue-600 font-medium hover:underline"
+            <button
+              type="submit"
+              className="w-full py-3 px-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500"
+            >
+              {isLoginMode ? "Login" : showOtpField ? "Verify OTP" : "Sign Up"}
+            </button>
+          </form>
+
+          <p className="text-center text-sm mt-4">
+            {isLoginMode ? (
+              <>
+                Don't have an account?{" "}
+                <span
+                  onClick={() => setIsLoginMode(false)}
+                  className="text-emerald-600 cursor-pointer hover:underline"
+                >
+                  Sign Up
+                </span>
+              </>
+            ) : (
+              <>
+                Already have an account?{" "}
+                <span
+                  onClick={() => setIsLoginMode(true)}
+                  className="text-emerald-600 cursor-pointer hover:underline"
+                >
+                  Login
+                </span>
+              </>
+            )}
+          </p>
+
+          <div className="flex items-center my-4">
+            <hr className="flex-grow border-gray-300" />
+            <span className="px-2 text-gray-500">OR</span>
+            <hr className="flex-grow border-gray-300" />
+          </div>
+
+          <div className="space-y-4">
+            <button
+              onClick={() => handleSocialLogin("google")}
+              className={socialButtonClass}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                x="0px"
+                y="0px"
+                width="30"
+                height="30"
+                viewBox="0 0 48 48"
               >
-              Forgotten your password?
-              </Link>
-              </div>
-            </>
-          )}
-
-          {showOtpField && (
-            <input
-              type="text"
-              name="otp"
-              placeholder="Enter OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg"
-            />
-          )}
-
-          <button
-            type="submit"
-            className="w-full py-3 px-4 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500"
-          >
-            {isLoginMode ? "Login" : showOtpField ? "Verify OTP" : "Sign Up"}
-          </button>
-        </form>
-
-        <p className="text-center text-sm mt-4">
-          {isLoginMode ? (
-            <>
-              Don't have an account?{" "}
-              <span
-                onClick={() => setIsLoginMode(false)}
-                className="text-emerald-600 cursor-pointer hover:underline"
-              >
-                Sign Up
-              </span>
-            </>
-          ) : (
-            <>
-              Already have an account?{" "}
-              <span
-                onClick={() => setIsLoginMode(true)}
-                className="text-emerald-600 cursor-pointer hover:underline"
-              >
-                Login
-              </span>
-            </>
-          )}
-        </p>
-        
-        <div className="flex items-center my-4">
-          <hr className="flex-grow border-gray-300" />
-          <span className="px-2 text-gray-500">OR</span>
-          <hr className="flex-grow border-gray-300" />
-        </div>
-
-        <div className="space-y-4">
-          <button
-            onClick={() => handleSocialLogin("google")}
-            className={socialButtonClass}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="30" height="30" viewBox="0 0 48 48">
-              <path fill="#fbc02d" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20 s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#e53935" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039 l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4caf50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36 c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1565c0" d="M43.611,20.083L43.595,20L42,20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571 c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
-            </svg> 
-            Sign {isLoginMode ? "in" : "up"} with Google
-          </button>
-          {/* <button
+                <path
+                  fill="#fbc02d"
+                  d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20 s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+                ></path>
+                <path
+                  fill="#e53935"
+                  d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039 l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
+                ></path>
+                <path
+                  fill="#4caf50"
+                  d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36 c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
+                ></path>
+                <path
+                  fill="#1565c0"
+                  d="M43.611,20.083L43.595,20L42,20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571 c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
+                ></path>
+              </svg>
+              Sign {isLoginMode ? "in" : "up"} with Google
+            </button>
+            {/* <button
             onClick={() => handleSocialLogin("github")}
             className={socialButtonClass}
           >
@@ -278,9 +334,10 @@ const SignupPage = () => {
             </svg>
             Sign {isLoginMode ? "in" : "up"} with Github
           </button> */}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
