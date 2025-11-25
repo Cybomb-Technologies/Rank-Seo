@@ -13,7 +13,7 @@ const SignupPage = () => {
   const metaPropsData = {
     title: "Sign Up for RANK SEO - Create Your SEO Analytics Account",
     description:
-      "Join RANK SEO and create your account to access powerful SEO audit tools, website performance analytics, and comprehensive digital marketing insights. Start optimizing your online presence today.",
+      "Join RANK SEO and create your account to access powerful SEO audit tools, website performance analytics, and comprehensive digital marketing insights for optimizing your online presence.",
     keyword:
       "free seo tools signup, seo analytics platform, website audit tool, rank seo registration, seo dashboard access",
     url: "https://rankseo.in/signup",
