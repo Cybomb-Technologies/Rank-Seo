@@ -129,11 +129,11 @@ const UserOverview = () => {
   };
 
   const metaPropsData = {
-    title: "Profile Settings | Manage Your SEO Account",
+    title: "Profile - Manage Your SEO Account & Preferences - Rank SEO",
     description:
-      "Update your profile information, manage account settings, and customize your RANK SEO experience for better SEO tool management.",
+      "Update your profile information, manage account settings, and customize your RANK SEO preferences for optimal SEO tool management and user experience.",
     keyword:
-      "SEO profile settings, account management, user profile, personal information, SEO account",
+      "seo profile settings, account management, user profile, personal information, seo account",
     url: "https://rankseo.in/profile",
     image: "https://rankseo.in/SEO_LOGO.png",
   };

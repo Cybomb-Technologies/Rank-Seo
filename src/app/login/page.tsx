@@ -3,11 +3,26 @@ import React, { useState, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { showSuccessAlert, showErrorAlert, showWarningAlert } from "@/components/Utils/alert-util";
+import {
+  showSuccessAlert,
+  showErrorAlert,
+  showWarningAlert,
+} from "@/components/Utils/alert-util";
 import { useUser } from "@/components/context/UserContext";
-const API_URL = process.env.NEXT_PUBLIC_API_URL ;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+import Metatags from "../../SEO/metatags";
 
 const LoginPage = () => {
+  const metaPropsData = {
+    title: "Login to RANK SEO - Access Your SEO Dashboard & Analytics",
+    description:
+      "Sign in to your RANK SEO account to access comprehensive SEO audits, performance analytics, and website optimization tools. Manage your SEO campaigns effectively.",
+    keyword:
+      "rank seo login, seo tool login, access seo dashboard, website analytics login, seo audit tool, seo management",
+    url: "https://rankseo.in/login",
+    image: "https://rankseo.in/SEO_LOGO.png",
+  };
+
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -45,7 +60,7 @@ const LoginPage = () => {
                 setUser(meData);
               }
             }
-            
+
             showSuccessAlert("Login successful!");
             router.push("/");
           } else {
@@ -68,120 +83,144 @@ const LoginPage = () => {
     "flex items-center justify-center w-full py-2 px-4 bg-gray-100 text-gray-800 rounded-full font-semibold transition-transform transform hover:scale-105 duration-200 cursor-pointer shadow-md";
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-blue-50 p-4">
-      <div className="bg-white text-gray-900 p-8 rounded-2xl shadow-2xl max-w-sm w-full relative">
-        {/* Logo and Title */}
-        <div className="flex justify-center mb-6">
-          <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z"
-              />
-            </svg>
+    <>
+      <Metatags metaProps={metaPropsData} />
+      <div className="flex items-center justify-center min-h-screen bg-blue-50 p-4">
+        <div className="bg-white text-gray-900 p-8 rounded-2xl shadow-2xl max-w-sm w-full relative">
+          {/* Logo and Title */}
+          <div className="flex justify-center mb-6">
+            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 103.5 10.5a7.5 7.5 0 0013.15 6.15z"
+                />
+              </svg>
+            </div>
+            <span className="text-xl font-bold text-gray-900 ml-2">
+              RankSeo
+            </span>
           </div>
-          <span className="text-xl font-bold text-gray-900 ml-2">
-            RankSeo
-          </span>
-        </div>
-        <h1 className="text-3xl font-bold text-center mb-6">Sign in</h1>
+          <h1 className="text-3xl font-bold text-center mb-6">Sign in</h1>
 
-        {/* Form */}
-        <form onSubmit={handleNext} className="space-y-4">
-          <input
-            type="text"
-            placeholder="Phone, email, or username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full py-3 px-4 bg-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-          />
+          {/* Form */}
+          <form onSubmit={handleNext} className="space-y-4">
+            <input
+              type="text"
+              placeholder="Phone, email, or username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full py-3 px-4 bg-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+            />
+
+            <AnimatePresence>
+              {showPassword && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <input
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full py-3 px-4 bg-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence mode="wait">
+              <motion.button
+                key={showPassword ? "login" : "next"}
+                type="submit"
+                layout
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className="w-full py-3 px-4 bg-emerald-600 text-white rounded-full font-semibold shadow-lg hover:bg-emerald-500 cursor-pointer"
+              >
+                {showPassword ? "Login" : "Next"}
+              </motion.button>
+            </AnimatePresence>
+          </form>
 
           <AnimatePresence>
             {showPassword && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
+                initial={{ opacity: 0, y: -5 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+                exit={{ opacity: 0, y: -5 }}
                 transition={{ duration: 0.3 }}
+                className="flex justify-center mt-4"
               >
-                <input
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full py-3 px-4 bg-gray-200 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-                />
+                <Link
+                  href="/forgotpassword"
+                  className="text-sm text-blue-600 font-medium hover:underline"
+                >
+                  Forgotten your password?
+                </Link>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <AnimatePresence mode="wait">
-            <motion.button
-              key={showPassword ? "login" : "next"}
-              type="submit"
-              layout
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="w-full py-3 px-4 bg-emerald-600 text-white rounded-full font-semibold shadow-lg hover:bg-emerald-500 cursor-pointer"
-            >
-              {showPassword ? "Login" : "Next"}
-            </motion.button>
-          </AnimatePresence>
-        </form>
+          <p className="mt-8 text-center text-gray-600">
+            Don’t have an account?{" "}
+            <Link href="/signup" className="text-emerald-600 hover:underline">
+              Sign up
+            </Link>
+          </p>
 
-        <AnimatePresence>
-          {showPassword && (
-            <motion.div
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              transition={{ duration: 0.3 }}
-              className="flex justify-center mt-4"
+          <div className="flex items-center my-4">
+            <hr className="flex-grow border-gray-300" />
+            <span className="px-2 text-gray-500">OR</span>
+            <hr className="flex-grow border-gray-300" />
+          </div>
+
+          <div className="space-y-4 mb-6">
+            <button
+              onClick={() => handleSocialLogin("google")}
+              className={socialButtonClass}
             >
-              <Link
-                href="/forgotpassword"
-                className="text-sm text-blue-600 font-medium hover:underline"
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                x="0px"
+                y="0px"
+                width="30"
+                height="30"
+                viewBox="0 0 48 48"
               >
-                Forgotten your password?
-              </Link>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <p className="mt-8 text-center text-gray-600">
-          Don’t have an account?{" "}
-          <Link href="/signup" className="text-emerald-600 hover:underline">
-            Sign up
-          </Link>
-        </p>
-
-        <div className="flex items-center my-4">
-          <hr className="flex-grow border-gray-300" />
-          <span className="px-2 text-gray-500">OR</span>
-          <hr className="flex-grow border-gray-300" />
-        </div>
-
-        <div className="space-y-4 mb-6">
-          <button
-            onClick={() => handleSocialLogin("google")}
-            className={socialButtonClass}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="30" height="30" viewBox="0 0 48 48">
-              <path fill="#fbc02d" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20 s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#e53935" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039 l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4caf50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36 c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1565c0" d="M43.611,20.083L43.595,20L42,20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571 c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
-            </svg>
-            Continue with Google
-          </button>
-          {/* <button
+                <path
+                  fill="#fbc02d"
+                  d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12 s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20 s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+                ></path>
+                <path
+                  fill="#e53935"
+                  d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039 l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
+                ></path>
+                <path
+                  fill="#4caf50"
+                  d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36 c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
+                ></path>
+                <path
+                  fill="#1565c0"
+                  d="M43.611,20.083L43.595,20L42,20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571 c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"
+                ></path>
+              </svg>
+              Continue with Google
+            </button>
+            {/* <button
             onClick={() => handleSocialLogin("github")}
             className={socialButtonClass}
           >
@@ -190,9 +229,10 @@ const LoginPage = () => {
             </svg>
             Continue with Github
           </button> */}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

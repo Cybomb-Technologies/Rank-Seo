@@ -78,7 +78,7 @@ export default function KeywordGeneratorPage() {
           const used = data.usage.used || 0;
           const limit = data.usage.limit || 10;
           const remaining = Math.max(0, limit - used);
-          
+
           setUsageLimits({
             used: used,
             limit: limit,
@@ -180,7 +180,7 @@ export default function KeywordGeneratorPage() {
           const used = errorData.usage?.used || 0;
           const limit = errorData.usage?.limit || 10;
           const remaining = Math.max(0, limit - used);
-          
+
           setUsageLimits({
             used: used,
             limit: limit,
@@ -197,20 +197,20 @@ export default function KeywordGeneratorPage() {
 
       const saveResult = await saveResponse.json();
       console.log("✅ Keyword report saved to database:", saveResult.data);
-      
+
       // Update usage limits after successful save
       if (saveResult.usage) {
         const used = saveResult.usage.used;
         const limit = saveResult.usage.limit;
         const remaining = Math.max(0, limit - used);
-        
+
         setUsageLimits({
           used: used,
           limit: limit,
           remaining: remaining,
         });
       }
-      
+
       return true;
     } catch (error) {
       console.error("❌ Error saving to database:", error);
@@ -290,8 +290,11 @@ export default function KeywordGeneratorPage() {
       setReport({ topic: initialTopic, keywords: cleanedKeywords });
 
       // Save to MongoDB in background (silently)
-      const saveSuccess = await saveKeywordReportToDatabase(cleanedKeywords, sessionId);
-      
+      const saveSuccess = await saveKeywordReportToDatabase(
+        cleanedKeywords,
+        sessionId
+      );
+
       if (!saveSuccess && usageLimits?.remaining === 0) {
         // If save failed due to usage limits, show upgrade modal
         setShowUpgradeModal(true);
@@ -312,11 +315,11 @@ export default function KeywordGeneratorPage() {
   };
 
   const metaPropsData = {
-    title: "AI Keyword Generator Tool | Smart SEO Keyword Research",
+    title: "Free Keyword Generate Tool - Analyse your keywords for SEO",
     description:
-      "Generate high-converting keywords with AI-powered keyword research tool. Get search volume, difficulty scores, and content ideas for better SEO.",
+      "Use our free keyword research tool for SEO. Get comprehensive keyword planner and analysis features with search volumes and difficulty scores to find high-converting keywords.",
     keyword:
-      "keyword generator, AI keyword research, SEO keywords, keyword ideas, content strategy",
+      "free keyword research tool, keyword planner tool, keyword analysis tool, keyword research for seo, keyword search volumes",
     url: "https://rankseo.in/keyword-generator",
     image: "https://rankseo.in/SEO_LOGO.png",
   };
@@ -342,9 +345,9 @@ export default function KeywordGeneratorPage() {
 
         <div className="container mx-auto py-12 px-6">
           {report && (
-            <KeywordResults 
-              topic={report.topic} 
-              keywords={report.keywords} 
+            <KeywordResults
+              topic={report.topic}
+              keywords={report.keywords}
               usageLimits={usageLimits || undefined}
             />
           )}
@@ -387,14 +390,19 @@ export default function KeywordGeneratorPage() {
                   Upgrade Your Plan
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  You've reached your monthly limit of {usageLimits?.limit} keyword reports. 
-                  Upgrade to unlock more features and higher limits.
+                  You've reached your monthly limit of {usageLimits?.limit}{" "}
+                  keyword reports. Upgrade to unlock more features and higher
+                  limits.
                 </p>
-                
+
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                  <h4 className="font-semibold text-gray-800 mb-2">Current Plan Features</h4>
+                  <h4 className="font-semibold text-gray-800 mb-2">
+                    Current Plan Features
+                  </h4>
                   <ul className="text-sm text-gray-600 space-y-1">
-                    <li>• {usageLimits?.limit || 10} keyword reports per month</li>
+                    <li>
+                      • {usageLimits?.limit || 10} keyword reports per month
+                    </li>
                     <li>• Basic keyword analytics</li>
                     <li>• CSV export functionality</li>
                   </ul>

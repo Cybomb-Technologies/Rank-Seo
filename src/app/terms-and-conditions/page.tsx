@@ -3,12 +3,12 @@ import Metatags from "../../SEO/metatags";
 
 export default function TermsOfServicePage() {
   const metaPropsData = {
-    title: "Terms of Service | SEO Audit Tool Usage Agreement",
+    title: "Terms & Conditions - Rank SEO Agreement & Usage Terms",
     description:
-      "Read our Terms of Service for RANK SEO audit tools. Learn about account usage, subscriptions, intellectual property, and liability terms.",
+      "Review our Terms and conditions for the Rank SEO. This service agreement outlines the usage terms and legal agreement for our platform.",
     keyword:
       "SEO audit terms of service, terms and conditions, SEO tool agreement, usage terms, service agreement",
-    url: "https://rankseo.in/terms-of-services",
+    url: "https://rankseo.in/terms-and-conditions",
     image: "https://rankseo.in/SEO_LOGO.png",
   };
   return (
@@ -17,7 +17,7 @@ export default function TermsOfServicePage() {
       <div className="min-h-screen pt-28 bg-gray-50 text-gray-800 py-12 px-6">
         <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8">
           <h1 className="text-3xl font-bold mb-6 text-gray-900">
-            Terms of Service
+            Terms & Conditions
           </h1>
           <p className="mb-4 text-sm text-gray-500">
             Last updated: September 1, 2025
@@ -26,7 +26,7 @@ export default function TermsOfServicePage() {
           <p className="mb-6">
             Welcome to <strong>RankSeo.in</strong>. By accessing or using our
             AI-powered SEO analysis and landing page optimization tools (the
-            “Service”), you agree to be bound by these Terms of Service
+            “Service”), you agree to be bound by these Terms & Conditions
             (“Terms”). Please read them carefully before using the Service.
           </p>
 
@@ -128,7 +128,7 @@ export default function TermsOfServicePage() {
 
           <p className="text-gray-600 text-sm">
             By using RankSeo.in, you acknowledge that you have read and agreed
-            to these Terms of Service.
+            to these Terms & Conditions.
           </p>
         </div>
       </div>

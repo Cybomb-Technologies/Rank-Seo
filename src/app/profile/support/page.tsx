@@ -16,11 +16,11 @@ import {
 import Metatags from "../../../SEO/metatags";
 
 const metaPropsData = {
-  title: "Support Center | SEO Tool Help & Customer Support",
+  title: "Support Center - SEO Tool Help & Customer Assistance",
   description:
-    "Get help with RANK SEO tools, access knowledge base, contact support team, and find answers to frequently asked questions about SEO audits and analysis.",
+    "Get expert help with RANK SEO tools, access our knowledge base, contact our support team, and find troubleshooting guides for SEO audit and analysis tools.",
   keyword:
-    "SEO tool support, customer help, technical support, FAQ, contact support",
+    "seo tool support, customer help, technical support, troubleshooting guides, contact support",
   url: "https://rankseo.in/profile/support",
   image: "https://rankseo.in/SEO_LOGO.png",
 };
@@ -404,9 +404,7 @@ const MessageHistory = ({ messages, isLoading }: MessageHistoryProps) => {
             <History className="w-5 h-5 mr-3" />
             Message History
           </CardTitle>
-          <CardDescription>
-            Loading your support messages...
-          </CardDescription>
+          <CardDescription>Loading your support messages...</CardDescription>
         </CardHeader>
         <CardContent className="text-center py-8">
           <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
@@ -442,24 +440,28 @@ const MessageHistory = ({ messages, isLoading }: MessageHistoryProps) => {
               className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
             >
               <div className="flex justify-between items-start mb-2">
-                <h4 className="font-medium text-foreground">{message.subject}</h4>
+                <h4 className="font-medium text-foreground">
+                  {message.subject}
+                </h4>
                 <div className="flex items-center space-x-2">
                   {getStatusIcon(message.status)}
                   <Badge variant="outline" className="text-xs capitalize">
-                    {message.status.replace('_', ' ')}
+                    {message.status.replace("_", " ")}
                   </Badge>
                 </div>
               </div>
-              
+
               <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                 {message.message}
               </p>
-              
+
               <div className="flex justify-between items-center text-xs text-gray-500">
                 <div className="flex space-x-2">
-                  <Badge 
-                    variant="outline" 
-                    className={`capitalize ${getPriorityColor(message.priority)}`}
+                  <Badge
+                    variant="outline"
+                    className={`capitalize ${getPriorityColor(
+                      message.priority
+                    )}`}
                   >
                     {message.priority}
                   </Badge>
@@ -467,9 +469,7 @@ const MessageHistory = ({ messages, isLoading }: MessageHistoryProps) => {
                     {message.type}
                   </Badge>
                 </div>
-                <span>
-                  {new Date(message.createdAt).toLocaleDateString()}
-                </span>
+                <span>{new Date(message.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
           ))
@@ -660,12 +660,16 @@ const ContactForm = () => {
         priority: "medium",
         type: "technical",
       });
-      
+
       // Refresh message history
-      window.dispatchEvent(new Event('refreshMessages'));
+      window.dispatchEvent(new Event("refreshMessages"));
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -718,7 +722,7 @@ const ContactForm = () => {
             {error}
           </div>
         )}
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
@@ -904,40 +908,42 @@ export default function SupportPage() {
   const [isLoadingMessages, setIsLoadingMessages] = useState<boolean>(false);
 
   // In the fetchMessageHistory function in page.tsx
-const fetchMessageHistory = async () => {
-  try {
-    setIsLoadingMessages(true);
-    const token = localStorage.getItem("token");
-    if (!token) {
+  const fetchMessageHistory = async () => {
+    try {
+      setIsLoadingMessages(true);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setIsLoadingMessages(false);
+        return;
+      }
+
+      const res = await fetch(`${API_BASE}/api/contact/my-messages`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setMessageHistory(data.messages || []);
+      } else if (res.status === 404) {
+        console.log(
+          "Messages endpoint not found - this is normal for new installations"
+        );
+        setMessageHistory([]);
+      } else {
+        console.error("Failed to fetch messages:", res.status);
+        setMessageHistory([]);
+      }
+    } catch (error) {
+      console.error("Error fetching message history:", error);
+      setMessageHistory([]);
+    } finally {
       setIsLoadingMessages(false);
-      return;
     }
-
-    const res = await fetch(`${API_BASE}/api/contact/my-messages`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      setMessageHistory(data.messages || []);
-    } else if (res.status === 404) {
-      console.log("Messages endpoint not found - this is normal for new installations");
-      setMessageHistory([]);
-    } else {
-      console.error("Failed to fetch messages:", res.status);
-      setMessageHistory([]);
-    }
-  } catch (error) {
-    console.error("Error fetching message history:", error);
-    setMessageHistory([]);
-  } finally {
-    setIsLoadingMessages(false);
-  }
-};
+  };
 
   // Fetch message history on component mount and when refresh event is triggered
   useEffect(() => {
@@ -947,10 +953,10 @@ const fetchMessageHistory = async () => {
       fetchMessageHistory();
     };
 
-    window.addEventListener('refreshMessages', handleRefreshMessages);
-    
+    window.addEventListener("refreshMessages", handleRefreshMessages);
+
     return () => {
-      window.removeEventListener('refreshMessages', handleRefreshMessages);
+      window.removeEventListener("refreshMessages", handleRefreshMessages);
     };
   }, []);
 
@@ -997,7 +1003,10 @@ const fetchMessageHistory = async () => {
           {/* Right Column - Quick Resources, Message History, and Support Status */}
           <div className="space-y-8">
             <QuickResources onOpenModal={handleOpenModal} />
-            <MessageHistory messages={messageHistory} isLoading={isLoadingMessages} />
+            <MessageHistory
+              messages={messageHistory}
+              isLoading={isLoadingMessages}
+            />
 
             {/* Support Status */}
             <Card className="hover:shadow-xl transition-shadow duration-300">

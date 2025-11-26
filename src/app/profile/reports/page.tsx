@@ -108,13 +108,19 @@ function formatAnalysis(analysis: string) {
 }
 
 // Service types
-type ServiceType = "seo-audit" | "business-names" | "keyword-reports" | "keyword-checker" | "keyword-scraper";
+type ServiceType =
+  | "seo-audit"
+  | "business-names"
+  | "keyword-reports"
+  | "keyword-checker"
+  | "keyword-scraper";
 
 export default function ReportsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("");
-  const [selectedService, setSelectedService] = useState<ServiceType>("seo-audit");
+  const [selectedService, setSelectedService] =
+    useState<ServiceType>("seo-audit");
   const [auditReports, setAuditReports] = useState<any[]>([]);
   const [businessNameReports, setBusinessNameReports] = useState<any[]>([]);
   const [keywordReports, setKeywordReports] = useState<any[]>([]);
@@ -125,8 +131,9 @@ export default function ReportsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [detailedBusinessNames, setDetailedBusinessNames] = useState<any[]>([]);
   const [detailedKeywords, setDetailedKeywords] = useState<any[]>([]);
-  const [detailedKeywordAnalysis, setDetailedKeywordAnalysis] = useState<any>(null);
-  
+  const [detailedKeywordAnalysis, setDetailedKeywordAnalysis] =
+    useState<any>(null);
+
   // Pagination states for all services
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -180,23 +187,30 @@ export default function ReportsPage() {
     if (!res.ok) throw new Error("Failed to fetch SEO audit reports");
 
     const data = await res.json();
-    const formattedData = (Array.isArray(data) ? data : data.audits || []).map((audit: any, idx: number) => ({
-      id: audit.id || idx + 1,
-      website: audit.url || "Unknown",
-      url: audit.url || "N/A",
-      date: audit.date || new Date().toLocaleDateString("en-GB"),
-      time: audit.time || new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      seoScore: audit.scores?.seo ?? 0,
-      speedScore: audit.scores?.performance ?? 0,
-      accessibilityScore: audit.scores?.accessibility ?? 0,
-      bestPracticesScore: audit.scores?.bestPractices ?? 0,
-      issues: audit.issues ?? 0,
-      status: audit.status || "completed",
-      trend: audit.trend || (audit.scores?.seo > 70 ? "up" : "down"),
-      recommendations: audit.recommendations || [],
-      analysis: audit.analysis || "",
-      service: "seo-audit",
-    }));
+    const formattedData = (Array.isArray(data) ? data : data.audits || []).map(
+      (audit: any, idx: number) => ({
+        id: audit.id || idx + 1,
+        website: audit.url || "Unknown",
+        url: audit.url || "N/A",
+        date: audit.date || new Date().toLocaleDateString("en-GB"),
+        time:
+          audit.time ||
+          new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        seoScore: audit.scores?.seo ?? 0,
+        speedScore: audit.scores?.performance ?? 0,
+        accessibilityScore: audit.scores?.accessibility ?? 0,
+        bestPracticesScore: audit.scores?.bestPractices ?? 0,
+        issues: audit.issues ?? 0,
+        status: audit.status || "completed",
+        trend: audit.trend || (audit.scores?.seo > 70 ? "up" : "down"),
+        recommendations: audit.recommendations || [],
+        analysis: audit.analysis || "",
+        service: "seo-audit",
+      })
+    );
 
     setAuditReports(formattedData);
   };
@@ -210,18 +224,23 @@ export default function ReportsPage() {
     if (!res.ok) throw new Error("Failed to fetch business name reports");
 
     const data = await res.json();
-    const formattedData = (data.data || []).map((session: any, idx: number) => ({
-      id: session._id || session.sessionId || idx + 1,
-      sessionId: session.sessionId,
-      industry: session.industry || "Unknown",
-      audience: session.audience || "General",
-      stylePreference: session.stylePreference || "Modern",
-      nameCount: session.nameCount || 0,
-      date: new Date(session.generatedAt).toLocaleDateString("en-GB"),
-      time: new Date(session.generatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      status: "completed",
-      service: "business-names",
-    }));
+    const formattedData = (data.data || []).map(
+      (session: any, idx: number) => ({
+        id: session._id || session.sessionId || idx + 1,
+        sessionId: session.sessionId,
+        industry: session.industry || "Unknown",
+        audience: session.audience || "General",
+        stylePreference: session.stylePreference || "Modern",
+        nameCount: session.nameCount || 0,
+        date: new Date(session.generatedAt).toLocaleDateString("en-GB"),
+        time: new Date(session.generatedAt).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        status: "completed",
+        service: "business-names",
+      })
+    );
 
     setBusinessNameReports(formattedData);
   };
@@ -245,7 +264,10 @@ export default function ReportsPage() {
       totalSearchVolume: report.totalSearchVolume || 0,
       averageCPC: report.averageCPC || 0,
       date: new Date(report.generatedAt).toLocaleDateString("en-GB"),
-      time: new Date(report.generatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      time: new Date(report.generatedAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
       status: "completed",
       service: "keyword-reports",
     }));
@@ -267,7 +289,7 @@ export default function ReportsPage() {
       }
 
       const data = await res.json();
-      
+
       if (data.success && Array.isArray(data.data)) {
         const formattedData = data.data.map((report: any, idx: number) => ({
           id: report._id || report.reportId || `kc-${idx + 1}`,
@@ -280,7 +302,10 @@ export default function ReportsPage() {
           summary: report.summary || {},
           analysis: report.analysis || {},
           date: new Date(report.createdAt).toLocaleDateString("en-GB"),
-          time: new Date(report.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          time: new Date(report.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
           service: "keyword-checker",
         }));
 
@@ -302,12 +327,14 @@ export default function ReportsPage() {
       });
 
       if (!res.ok) {
-        console.warn("Keyword scraper reports endpoint not available, trying alternative endpoint");
+        console.warn(
+          "Keyword scraper reports endpoint not available, trying alternative endpoint"
+        );
         // Try alternative endpoint
         const altRes = await fetch(`${API_URL}/api/reports`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        
+
         if (!altRes.ok) {
           setKeywordScraperReports([]);
           return;
@@ -315,20 +342,25 @@ export default function ReportsPage() {
 
         const altData = await altRes.json();
         if (altData.success && Array.isArray(altData.data)) {
-          const formattedData = altData.data.map((report: any, idx: number) => ({
-            id: report._id || report.reportId || `ks-${idx + 1}`,
-            reportId: report.reportId,
-            mainUrl: report.mainUrl || "Unknown",
-            domain: report.domain || "N/A",
-            totalPagesScraped: report.totalPagesScraped || 0,
-            totalKeywordsFound: report.totalKeywordsFound || 0,
-            keywordData: report.keywordData || {},
-            scrapedPages: report.scrapedPages || [],
-            date: new Date(report.createdAt).toLocaleDateString("en-GB"),
-            time: new Date(report.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-            status: "completed",
-            service: "keyword-scraper",
-          }));
+          const formattedData = altData.data.map(
+            (report: any, idx: number) => ({
+              id: report._id || report.reportId || `ks-${idx + 1}`,
+              reportId: report.reportId,
+              mainUrl: report.mainUrl || "Unknown",
+              domain: report.domain || "N/A",
+              totalPagesScraped: report.totalPagesScraped || 0,
+              totalKeywordsFound: report.totalKeywordsFound || 0,
+              keywordData: report.keywordData || {},
+              scrapedPages: report.scrapedPages || [],
+              date: new Date(report.createdAt).toLocaleDateString("en-GB"),
+              time: new Date(report.createdAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              status: "completed",
+              service: "keyword-scraper",
+            })
+          );
 
           setKeywordScraperReports(formattedData);
         } else {
@@ -338,7 +370,7 @@ export default function ReportsPage() {
       }
 
       const data = await res.json();
-      
+
       if (data.success && Array.isArray(data.data)) {
         const formattedData = data.data.map((report: any, idx: number) => ({
           id: report._id || report.reportId || `ks-${idx + 1}`,
@@ -350,7 +382,10 @@ export default function ReportsPage() {
           keywordData: report.keywordData || {},
           scrapedPages: report.scrapedPages || [],
           date: new Date(report.createdAt).toLocaleDateString("en-GB"),
-          time: new Date(report.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          time: new Date(report.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
           status: "completed",
           service: "keyword-scraper",
         }));
@@ -391,9 +426,12 @@ export default function ReportsPage() {
       const token = localStorage.getItem("token");
       if (!token) return [];
 
-      const res = await fetch(`${API_URL}/api/keywords/reports/session/${sessionId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${API_URL}/api/keywords/reports/session/${sessionId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (!res.ok) throw new Error("Failed to fetch detailed keywords");
 
@@ -440,9 +478,10 @@ export default function ReportsPage() {
         const altRes = await fetch(`${API_URL}/api/report/${reportId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        
-        if (!altRes.ok) throw new Error("Failed to fetch detailed scraper analysis");
-        
+
+        if (!altRes.ok)
+          throw new Error("Failed to fetch detailed scraper analysis");
+
         const altData = await altRes.json();
         return altData.report || altData.data || null;
       }
@@ -518,14 +557,15 @@ export default function ReportsPage() {
   // ✅ Filtering logic with Date filter
   const currentReports = getCurrentReports();
   const filteredReports = currentReports.filter((report) => {
-    const matchesSearch = 
+    const matchesSearch =
       report.website?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.url?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.mainUrl?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.topic?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.industry?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesStatus = statusFilter === "all" || report.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "all" || report.status === statusFilter;
     const matchesDate = !dateFilter || formatDate(report.date) === dateFilter;
 
     return matchesSearch && matchesStatus && matchesDate;
@@ -535,7 +575,7 @@ export default function ReportsPage() {
   const getCurrentItems = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    
+
     if (selectedReport?.service === "keyword-reports") {
       return detailedKeywords.slice(startIndex, endIndex);
     } else if (selectedReport?.service === "keyword-checker") {
@@ -553,7 +593,7 @@ export default function ReportsPage() {
 
   const getTotalPages = () => {
     let totalItems = 0;
-    
+
     if (selectedReport?.service === "keyword-reports") {
       totalItems = detailedKeywords.length;
     } else if (selectedReport?.service === "keyword-checker") {
@@ -565,7 +605,7 @@ export default function ReportsPage() {
       const reportData = detailedKeywordAnalysis || selectedReport;
       totalItems = reportData.keywordData?.primary_keywords?.length || 0;
     }
-    
+
     return Math.ceil(totalItems / itemsPerPage);
   };
 
@@ -590,12 +630,18 @@ export default function ReportsPage() {
   const getCurrentScrapedPages = () => {
     const startIndex = (currentScrapedPage - 1) * scrapedPerPage;
     const endIndex = startIndex + scrapedPerPage;
-    const scrapedPages = detailedKeywordAnalysis?.scrapedPages || selectedReport?.scrapedPages || [];
+    const scrapedPages =
+      detailedKeywordAnalysis?.scrapedPages ||
+      selectedReport?.scrapedPages ||
+      [];
     return scrapedPages.slice(startIndex, endIndex);
   };
 
   const getTotalScrapedPages = () => {
-    const scrapedPages = detailedKeywordAnalysis?.scrapedPages || selectedReport?.scrapedPages || [];
+    const scrapedPages =
+      detailedKeywordAnalysis?.scrapedPages ||
+      selectedReport?.scrapedPages ||
+      [];
     return Math.ceil(scrapedPages.length / scrapedPerPage);
   };
 
@@ -621,7 +667,7 @@ export default function ReportsPage() {
     setSelectedReport(report);
     setCurrentPage(1); // Reset to first page when viewing new report
     setCurrentScrapedPage(1); // Reset scraped pages pagination
-    
+
     // Fetch additional data based on service type
     if (report.service === "business-names" && report.sessionId) {
       const detailedNames = await fetchDetailedBusinessNames(report.sessionId);
@@ -630,17 +676,21 @@ export default function ReportsPage() {
       const detailedKeywords = await fetchDetailedKeywords(report.sessionId);
       setDetailedKeywords(detailedKeywords);
     } else if (report.service === "keyword-checker" && report.reportId) {
-      const detailedAnalysis = await fetchDetailedKeywordAnalysis(report.reportId);
+      const detailedAnalysis = await fetchDetailedKeywordAnalysis(
+        report.reportId
+      );
       setDetailedKeywordAnalysis(detailedAnalysis);
     } else if (report.service === "keyword-scraper" && report.reportId) {
-      const detailedAnalysis = await fetchDetailedScraperAnalysis(report.reportId);
+      const detailedAnalysis = await fetchDetailedScraperAnalysis(
+        report.reportId
+      );
       setDetailedKeywordAnalysis(detailedAnalysis);
     } else {
       setDetailedBusinessNames([]);
       setDetailedKeywords([]);
       setDetailedKeywordAnalysis(null);
     }
-    
+
     setIsDialogOpen(true);
   };
 
@@ -651,55 +701,85 @@ export default function ReportsPage() {
         return (
           <>
             <TableHead className="min-w-[120px]">Website</TableHead>
-            <TableHead className="text-center hidden xs:table-cell">Date</TableHead>
+            <TableHead className="text-center hidden xs:table-cell">
+              Date
+            </TableHead>
             <TableHead className="text-center">SEO</TableHead>
             <TableHead className="text-center">Speed</TableHead>
-            <TableHead className="text-center hidden sm:table-cell">Accessibility</TableHead>
-            <TableHead className="text-center hidden md:table-cell">Best Practices</TableHead>
-            <TableHead className="text-center hidden lg:table-cell">Trend</TableHead>
+            <TableHead className="text-center hidden sm:table-cell">
+              Accessibility
+            </TableHead>
+            <TableHead className="text-center hidden md:table-cell">
+              Best Practices
+            </TableHead>
+            <TableHead className="text-center hidden lg:table-cell">
+              Trend
+            </TableHead>
             <TableHead className="text-center">Actions</TableHead>
           </>
         );
-      
+
       case "business-names":
         return (
           <>
             <TableHead className="min-w-[120px]">Industry</TableHead>
-            <TableHead className="text-center hidden xs:table-cell">Audience</TableHead>
-            <TableHead className="text-center hidden sm:table-cell">Style</TableHead>
+            <TableHead className="text-center hidden xs:table-cell">
+              Audience
+            </TableHead>
+            <TableHead className="text-center hidden sm:table-cell">
+              Style
+            </TableHead>
             <TableHead className="text-center">Names</TableHead>
-            <TableHead className="text-center hidden xs:table-cell">Date</TableHead>
-            <TableHead className="text-center hidden md:table-cell">Session ID</TableHead>
+            <TableHead className="text-center hidden xs:table-cell">
+              Date
+            </TableHead>
+            <TableHead className="text-center hidden md:table-cell">
+              Session ID
+            </TableHead>
             <TableHead className="text-center">Actions</TableHead>
           </>
         );
-      
+
       case "keyword-reports":
         return (
           <>
             <TableHead className="min-w-[120px]">Topic</TableHead>
-            <TableHead className="text-center hidden xs:table-cell">Industry</TableHead>
+            <TableHead className="text-center hidden xs:table-cell">
+              Industry
+            </TableHead>
             <TableHead className="text-center">Keywords</TableHead>
-            <TableHead className="text-center hidden sm:table-cell">Search Volume</TableHead>
-            <TableHead className="text-center hidden xs:table-cell">Date</TableHead>
-            <TableHead className="text-center hidden md:table-cell">Avg CPC</TableHead>
+            <TableHead className="text-center hidden sm:table-cell">
+              Search Volume
+            </TableHead>
+            <TableHead className="text-center hidden xs:table-cell">
+              Date
+            </TableHead>
+            <TableHead className="text-center hidden md:table-cell">
+              Avg CPC
+            </TableHead>
             <TableHead className="text-center">Actions</TableHead>
           </>
         );
-      
+
       case "keyword-checker":
       case "keyword-scraper":
         return (
           <>
             <TableHead className="min-w-[120px]">URL</TableHead>
             <TableHead className="text-center">Pages</TableHead>
-            <TableHead className="text-center hidden xs:table-cell">Keywords</TableHead>
-            <TableHead className="text-center hidden sm:table-cell">Date</TableHead>
-            <TableHead className="text-center hidden md:table-cell">Status</TableHead>
+            <TableHead className="text-center hidden xs:table-cell">
+              Keywords
+            </TableHead>
+            <TableHead className="text-center hidden sm:table-cell">
+              Date
+            </TableHead>
+            <TableHead className="text-center hidden md:table-cell">
+              Status
+            </TableHead>
             <TableHead className="text-center">Actions</TableHead>
           </>
         );
-      
+
       default:
         return null;
     }
@@ -712,18 +792,27 @@ export default function ReportsPage() {
         return (
           <TableRow key={report.id} className="hover:bg-muted/50">
             <TableCell className="py-3">
-              <div className="max-w-[120px] xs:max-w-[180px] sm:max-w-none truncate" title={report.website}>
+              <div
+                className="max-w-[120px] xs:max-w-[180px] sm:max-w-none truncate"
+                title={report.website}
+              >
                 {report.website}
               </div>
-              <div className="xs:hidden text-xs text-muted-foreground mt-1">{report.date}</div>
+              <div className="xs:hidden text-xs text-muted-foreground mt-1">
+                {report.date}
+              </div>
             </TableCell>
             <TableCell className="text-center py-3 hidden xs:table-cell">
-              <p className="text-xs sm:text-sm font-medium whitespace-nowrap">{report.date}</p>
+              <p className="text-xs sm:text-sm font-medium whitespace-nowrap">
+                {report.date}
+              </p>
             </TableCell>
             <TableCell className="text-center py-3">
               <Badge
                 variant={getScoreBadgeVariant(report.seoScore)}
-                className={`${getScoreColor(report.seoScore)} text-xs px-2 py-1`}
+                className={`${getScoreColor(
+                  report.seoScore
+                )} text-xs px-2 py-1`}
               >
                 {report.seoScore}
               </Badge>
@@ -731,7 +820,9 @@ export default function ReportsPage() {
             <TableCell className="text-center py-3">
               <Badge
                 variant={getScoreBadgeVariant(report.speedScore)}
-                className={`${getScoreColor(report.speedScore)} text-xs px-2 py-1`}
+                className={`${getScoreColor(
+                  report.speedScore
+                )} text-xs px-2 py-1`}
               >
                 {report.speedScore}
               </Badge>
@@ -739,7 +830,9 @@ export default function ReportsPage() {
             <TableCell className="text-center hidden sm:table-cell py-3">
               <Badge
                 variant={getScoreBadgeVariant(report.accessibilityScore)}
-                className={`${getScoreColor(report.accessibilityScore)} text-xs px-2 py-1`}
+                className={`${getScoreColor(
+                  report.accessibilityScore
+                )} text-xs px-2 py-1`}
               >
                 {report.accessibilityScore}
               </Badge>
@@ -747,7 +840,9 @@ export default function ReportsPage() {
             <TableCell className="text-center hidden md:table-cell py-3">
               <Badge
                 variant={getScoreBadgeVariant(report.bestPracticesScore)}
-                className={`${getScoreColor(report.bestPracticesScore)} text-xs px-2 py-1`}
+                className={`${getScoreColor(
+                  report.bestPracticesScore
+                )} text-xs px-2 py-1`}
               >
                 {report.bestPracticesScore}
               </Badge>
@@ -772,12 +867,15 @@ export default function ReportsPage() {
             </TableCell>
           </TableRow>
         );
-      
+
       case "business-names":
         return (
           <TableRow key={report.id} className="hover:bg-muted/50">
             <TableCell className="py-3">
-              <div className="max-w-[120px] xs:max-w-[180px] sm:max-w-none truncate" title={report.industry}>
+              <div
+                className="max-w-[120px] xs:max-w-[180px] sm:max-w-none truncate"
+                title={report.industry}
+              >
                 {report.industry}
               </div>
               <div className="xs:hidden text-xs text-muted-foreground mt-1">
@@ -785,7 +883,9 @@ export default function ReportsPage() {
               </div>
             </TableCell>
             <TableCell className="text-center py-3 hidden xs:table-cell">
-              <p className="text-xs sm:text-sm font-medium whitespace-wrap">{report.audience}</p>
+              <p className="text-xs sm:text-sm font-medium whitespace-wrap">
+                {report.audience}
+              </p>
             </TableCell>
             <TableCell className="text-center py-3 hidden sm:table-cell">
               <Badge variant="secondary" className="text-xs px-2 py-1">
@@ -798,10 +898,14 @@ export default function ReportsPage() {
               </Badge>
             </TableCell>
             <TableCell className="text-center py-3 hidden xs:table-cell">
-              <p className="text-xs sm:text-sm font-medium whitespace-wrap">{report.date}</p>
+              <p className="text-xs sm:text-sm font-medium whitespace-wrap">
+                {report.date}
+              </p>
             </TableCell>
             <TableCell className="text-center hidden md:table-cell py-3">
-              <code className="text-xs bg-muted px-2 py-1 rounded">{report.sessionId?.slice(0, 8)}...</code>
+              <code className="text-xs bg-muted px-2 py-1 rounded">
+                {report.sessionId?.slice(0, 8)}...
+              </code>
             </TableCell>
             <TableCell className="text-center py-3">
               <Button
@@ -816,12 +920,15 @@ export default function ReportsPage() {
             </TableCell>
           </TableRow>
         );
-      
+
       case "keyword-reports":
         return (
           <TableRow key={report.id} className="hover:bg-muted/50">
             <TableCell className="py-3">
-              <div className="max-w-[120px] xs:max-w-[180px] sm:max-w-none truncate" title={report.topic}>
+              <div
+                className="max-w-[120px] xs:max-w-[180px] sm:max-w-none truncate"
+                title={report.topic}
+              >
                 {report.topic}
               </div>
               <div className="xs:hidden text-xs text-muted-foreground mt-1">
@@ -829,7 +936,9 @@ export default function ReportsPage() {
               </div>
             </TableCell>
             <TableCell className="text-center py-3 hidden xs:table-cell">
-              <p className="text-xs sm:text-sm font-medium whitespace-nowrap">{report.industry}</p>
+              <p className="text-xs sm:text-sm font-medium whitespace-nowrap">
+                {report.industry}
+              </p>
             </TableCell>
             <TableCell className="text-center py-3">
               <Badge variant="outline" className="text-xs px-2 py-1">
@@ -842,7 +951,9 @@ export default function ReportsPage() {
               </Badge>
             </TableCell>
             <TableCell className="text-center py-3 hidden xs:table-cell">
-              <p className="text-xs sm:text-sm font-medium whitespace-nowrap">{report.date}</p>
+              <p className="text-xs sm:text-sm font-medium whitespace-nowrap">
+                {report.date}
+              </p>
             </TableCell>
             <TableCell className="text-center hidden md:table-cell py-3">
               <Badge variant="outline" className="text-xs px-2 py-1">
@@ -862,12 +973,15 @@ export default function ReportsPage() {
             </TableCell>
           </TableRow>
         );
-      
+
       case "keyword-checker":
         return (
           <TableRow key={report.id} className="hover:bg-muted/50">
             <TableCell className="py-3">
-              <div className="max-w-[120px] xs:max-w-[180px] sm:max-w-none truncate" title={report.mainUrl}>
+              <div
+                className="max-w-[120px] xs:max-w-[180px] sm:max-w-none truncate"
+                title={report.mainUrl}
+              >
                 {report.mainUrl}
               </div>
               <div className="xs:hidden text-xs text-muted-foreground mt-1">
@@ -885,11 +999,15 @@ export default function ReportsPage() {
               </Badge>
             </TableCell>
             <TableCell className="text-center py-3 hidden sm:table-cell">
-              <p className="text-xs sm:text-sm font-medium whitespace-nowrap">{report.date}</p>
+              <p className="text-xs sm:text-sm font-medium whitespace-nowrap">
+                {report.date}
+              </p>
             </TableCell>
             <TableCell className="text-center hidden md:table-cell py-3">
-              <Badge 
-                variant={report.status === 'completed' ? 'default' : 'secondary'} 
+              <Badge
+                variant={
+                  report.status === "completed" ? "default" : "secondary"
+                }
                 className="text-xs px-2 py-1"
               >
                 {report.status}
@@ -908,12 +1026,15 @@ export default function ReportsPage() {
             </TableCell>
           </TableRow>
         );
-      
+
       case "keyword-scraper":
         return (
           <TableRow key={report.id} className="hover:bg-muted/50">
             <TableCell className="py-3">
-              <div className="max-w-[120px] xs:max-w-[180px] sm:max-w-none truncate" title={report.mainUrl}>
+              <div
+                className="max-w-[120px] xs:max-w-[180px] sm:max-w-none truncate"
+                title={report.mainUrl}
+              >
                 {report.mainUrl}
               </div>
               <div className="xs:hidden text-xs text-muted-foreground mt-1">
@@ -931,11 +1052,15 @@ export default function ReportsPage() {
               </Badge>
             </TableCell>
             <TableCell className="text-center py-3 hidden sm:table-cell">
-              <p className="text-xs sm:text-sm font-medium whitespace-nowrap">{report.date}</p>
+              <p className="text-xs sm:text-sm font-medium whitespace-nowrap">
+                {report.date}
+              </p>
             </TableCell>
             <TableCell className="text-center hidden md:table-cell py-3">
-              <Badge 
-                variant={report.status === 'completed' ? 'default' : 'secondary'} 
+              <Badge
+                variant={
+                  report.status === "completed" ? "default" : "secondary"
+                }
                 className="text-xs px-2 py-1"
               >
                 {report.status}
@@ -954,7 +1079,7 @@ export default function ReportsPage() {
             </TableCell>
           </TableRow>
         );
-      
+
       default:
         return null;
     }
@@ -986,16 +1111,26 @@ export default function ReportsPage() {
       {/* Performance Summary */}
       <Card>
         <CardHeader className="pb-2 sm:pb-3">
-          <CardTitle className="text-base sm:text-lg">Performance Summary</CardTitle>
-          <CardDescription className="text-sm sm:text-base">Overall website performance scores</CardDescription>
+          <CardTitle className="text-base sm:text-lg">
+            Performance Summary
+          </CardTitle>
+          <CardDescription className="text-sm sm:text-base">
+            Overall website performance scores
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <div className="space-y-1 sm:space-y-2">
               <p className="text-sm sm:text-base font-medium">SEO Score</p>
               <div className="flex items-center gap-2">
-                <Progress value={selectedReport.seoScore} className="h-1.5 sm:h-2 flex-1" />
-                <Badge variant={getScoreBadgeVariant(selectedReport.seoScore)} className="text-xs">
+                <Progress
+                  value={selectedReport.seoScore}
+                  className="h-1.5 sm:h-2 flex-1"
+                />
+                <Badge
+                  variant={getScoreBadgeVariant(selectedReport.seoScore)}
+                  className="text-xs"
+                >
                   {selectedReport.seoScore}
                 </Badge>
               </div>
@@ -1003,8 +1138,14 @@ export default function ReportsPage() {
             <div className="space-y-1 sm:space-y-2">
               <p className="text-sm sm:text-base font-medium">Speed Score</p>
               <div className="flex items-center gap-2">
-                <Progress value={selectedReport.speedScore} className="h-1.5 sm:h-2 flex-1" />
-                <Badge variant={getScoreBadgeVariant(selectedReport.speedScore)} className="text-xs">
+                <Progress
+                  value={selectedReport.speedScore}
+                  className="h-1.5 sm:h-2 flex-1"
+                />
+                <Badge
+                  variant={getScoreBadgeVariant(selectedReport.speedScore)}
+                  className="text-xs"
+                >
                   {selectedReport.speedScore}
                 </Badge>
               </div>
@@ -1012,8 +1153,16 @@ export default function ReportsPage() {
             <div className="space-y-1 sm:space-y-2">
               <p className="text-sm sm:text-base font-medium">Accessibility</p>
               <div className="flex items-center gap-2">
-                <Progress value={selectedReport.accessibilityScore} className="h-1.5 sm:h-2 flex-1" />
-                <Badge variant={getScoreBadgeVariant(selectedReport.accessibilityScore)} className="text-xs">
+                <Progress
+                  value={selectedReport.accessibilityScore}
+                  className="h-1.5 sm:h-2 flex-1"
+                />
+                <Badge
+                  variant={getScoreBadgeVariant(
+                    selectedReport.accessibilityScore
+                  )}
+                  className="text-xs"
+                >
                   {selectedReport.accessibilityScore}
                 </Badge>
               </div>
@@ -1021,8 +1170,16 @@ export default function ReportsPage() {
             <div className="space-y-1 sm:space-y-2">
               <p className="text-sm sm:text-base font-medium">Best Practices</p>
               <div className="flex items-center gap-2">
-                <Progress value={selectedReport.bestPracticesScore} className="h-1.5 sm:h-2 flex-1" />
-                <Badge variant={getScoreBadgeVariant(selectedReport.bestPracticesScore)} className="text-xs">
+                <Progress
+                  value={selectedReport.bestPracticesScore}
+                  className="h-1.5 sm:h-2 flex-1"
+                />
+                <Badge
+                  variant={getScoreBadgeVariant(
+                    selectedReport.bestPracticesScore
+                  )}
+                  className="text-xs"
+                >
                   {selectedReport.bestPracticesScore}
                 </Badge>
               </div>
@@ -1034,36 +1191,72 @@ export default function ReportsPage() {
       {/* Tabs for different sections */}
       <Tabs defaultValue="recommendations" className="w-full">
         <TabsList className="flex w-full overflow-x-auto">
-          <TabsTrigger value="recommendations" className="flex-1 min-w-0 text-xs sm:text-sm">Recommendations</TabsTrigger>
-          <TabsTrigger value="analysis" className="flex-1 min-w-0 text-xs sm:text-sm">Analysis</TabsTrigger>
-          <TabsTrigger value="technical" className="flex-1 min-w-0 text-xs sm:text-sm">Technical</TabsTrigger>
+          <TabsTrigger
+            value="recommendations"
+            className="flex-1 min-w-0 text-xs sm:text-sm"
+          >
+            Recommendations
+          </TabsTrigger>
+          <TabsTrigger
+            value="analysis"
+            className="flex-1 min-w-0 text-xs sm:text-sm"
+          >
+            Analysis
+          </TabsTrigger>
+          <TabsTrigger
+            value="technical"
+            className="flex-1 min-w-0 text-xs sm:text-sm"
+          >
+            Technical
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="recommendations" className="space-y-3 sm:space-y-4 pt-3">
+        <TabsContent
+          value="recommendations"
+          className="space-y-3 sm:space-y-4 pt-3"
+        >
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base sm:text-lg">Actionable Recommendations</CardTitle>
-              <CardDescription className="text-sm sm:text-base">Prioritized list of improvements for your website</CardDescription>
+              <CardTitle className="text-base sm:text-lg">
+                Actionable Recommendations
+              </CardTitle>
+              <CardDescription className="text-sm sm:text-base">
+                Prioritized list of improvements for your website
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {selectedReport.recommendations && selectedReport.recommendations.length > 0 ? (
-                selectedReport.recommendations.map((rec: any, index: number) => (
-                  <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
-                    <div className={`p-1.5 rounded-full ${getPriorityColor(rec.priority)} bg-opacity-20 mt-0.5 flex-shrink-0`}>
-                      {rec.priority === "high" ? (
-                        <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-                      ) : rec.priority === "medium" ? (
-                        <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
-                      ) : (
-                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-                      )}
+              {selectedReport.recommendations &&
+              selectedReport.recommendations.length > 0 ? (
+                selectedReport.recommendations.map(
+                  (rec: any, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-3 p-3 border rounded-lg"
+                    >
+                      <div
+                        className={`p-1.5 rounded-full ${getPriorityColor(
+                          rec.priority
+                        )} bg-opacity-20 mt-0.5 flex-shrink-0`}
+                      >
+                        {rec.priority === "high" ? (
+                          <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                        ) : rec.priority === "medium" ? (
+                          <Clock className="h-4 w-4 sm:h-5 sm:w-5" />
+                        ) : (
+                          <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-sm sm:text-base capitalize">
+                          {rec.priority} Priority
+                        </h4>
+                        <p className="text-sm sm:text-base text-muted-foreground mt-1 break-words">
+                          {rec.text}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-sm sm:text-base capitalize">{rec.priority} Priority</h4>
-                      <p className="text-sm sm:text-base text-muted-foreground mt-1 break-words">{rec.text}</p>
-                    </div>
-                  </div>
-                ))
+                  )
+                )
               ) : (
                 <p className="text-sm sm:text-base text-muted-foreground text-center py-4">
                   No recommendations available for this audit.
@@ -1076,18 +1269,26 @@ export default function ReportsPage() {
         <TabsContent value="analysis" className="space-y-3 sm:space-y-4 pt-3">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base sm:text-lg">Detailed Analysis</CardTitle>
-              <CardDescription className="text-sm sm:text-base">Comprehensive breakdown of the audit results</CardDescription>
+              <CardTitle className="text-base sm:text-lg">
+                Detailed Analysis
+              </CardTitle>
+              <CardDescription className="text-sm sm:text-base">
+                Comprehensive breakdown of the audit results
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {selectedReport.analysis ? (
                 <div className="space-y-2 sm:space-y-3">
-                  {formatAnalysis(selectedReport.analysis).map((point, index) => (
-                    <div key={index} className="flex items-start">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 mr-2 flex-shrink-0"></div>
-                      <p className="text-sm sm:text-base pt-1 flex-1 break-words">{point.replace(/#/g, "").trim()}</p>
-                    </div>
-                  ))}
+                  {formatAnalysis(selectedReport.analysis).map(
+                    (point, index) => (
+                      <div key={index} className="flex items-start">
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 mr-2 flex-shrink-0"></div>
+                        <p className="text-sm sm:text-base pt-1 flex-1 break-words">
+                          {point.replace(/#/g, "").trim()}
+                        </p>
+                      </div>
+                    )
+                  )}
                 </div>
               ) : (
                 <p className="text-sm sm:text-base text-muted-foreground text-center py-4">
@@ -1101,26 +1302,49 @@ export default function ReportsPage() {
         <TabsContent value="technical" className="space-y-3 sm:space-y-4 pt-3">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base sm:text-lg">Technical Details</CardTitle>
-              <CardDescription className="text-sm sm:text-base">Metadata and technical information about this audit</CardDescription>
+              <CardTitle className="text-base sm:text-lg">
+                Technical Details
+              </CardTitle>
+              <CardDescription className="text-sm sm:text-base">
+                Metadata and technical information about this audit
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <h4 className="font-medium text-sm sm:text-base">Audit Date</h4>
-                  <p className="text-sm sm:text-base text-muted-foreground">{selectedReport.date}</p>
+                  <h4 className="font-medium text-sm sm:text-base">
+                    Audit Date
+                  </h4>
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    {selectedReport.date}
+                  </p>
                 </div>
                 <div>
-                  <h4 className="font-medium text-sm sm:text-base">Audit Time</h4>
-                  <p className="text-sm sm:text-base text-muted-foreground">{selectedReport.time}</p>
+                  <h4 className="font-medium text-sm sm:text-base">
+                    Audit Time
+                  </h4>
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    {selectedReport.time}
+                  </p>
                 </div>
                 <div className="sm:col-span-2">
-                  <h4 className="font-medium text-sm sm:text-base">Website URL</h4>
-                  <p className="text-sm sm:text-base text-muted-foreground break-all">{selectedReport.url}</p>
+                  <h4 className="font-medium text-sm sm:text-base">
+                    Website URL
+                  </h4>
+                  <p className="text-sm sm:text-base text-muted-foreground break-all">
+                    {selectedReport.url}
+                  </p>
                 </div>
                 <div>
                   <h4 className="font-medium text-sm sm:text-base">Status</h4>
-                  <Badge variant={selectedReport.status === "completed" ? "default" : "secondary"} className="text-xs">
+                  <Badge
+                    variant={
+                      selectedReport.status === "completed"
+                        ? "default"
+                        : "secondary"
+                    }
+                    className="text-xs"
+                  >
                     {selectedReport.status}
                   </Badge>
                 </div>
@@ -1143,8 +1367,12 @@ export default function ReportsPage() {
         {/* Session Overview */}
         <Card>
           <CardHeader className="pb-2 sm:pb-3">
-            <CardTitle className="text-base sm:text-lg">Session Overview</CardTitle>
-            <CardDescription className="text-sm sm:text-base">Business name generation details</CardDescription>
+            <CardTitle className="text-base sm:text-lg">
+              Session Overview
+            </CardTitle>
+            <CardDescription className="text-sm sm:text-base">
+              Business name generation details
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -1153,28 +1381,36 @@ export default function ReportsPage() {
                   <Building className="w-4 h-4" />
                   <span>Industry</span>
                 </div>
-                <p className="font-medium text-sm sm:text-base break-words">{selectedReport.industry}</p>
+                <p className="font-medium text-sm sm:text-base break-words">
+                  {selectedReport.industry}
+                </p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Users className="w-4 h-4" />
                   <span>Audience</span>
                 </div>
-                <p className="font-medium text-sm sm:text-base break-words">{selectedReport.audience}</p>
+                <p className="font-medium text-sm sm:text-base break-words">
+                  {selectedReport.audience}
+                </p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Sparkles className="w-4 h-4" />
                   <span>Style</span>
                 </div>
-                <p className="font-medium text-sm sm:text-base break-words">{selectedReport.stylePreference}</p>
+                <p className="font-medium text-sm sm:text-base break-words">
+                  {selectedReport.stylePreference}
+                </p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Tag className="w-4 h-4" />
                   <span>Total Names</span>
                 </div>
-                <p className="font-medium text-sm sm:text-base">{selectedReport.nameCount}</p>
+                <p className="font-medium text-sm sm:text-base">
+                  {selectedReport.nameCount}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -1185,18 +1421,23 @@ export default function ReportsPage() {
           <CardHeader className="pb-2">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
-                <CardTitle className="text-base sm:text-lg">Generated Business Names</CardTitle>
+                <CardTitle className="text-base sm:text-lg">
+                  Generated Business Names
+                </CardTitle>
                 <CardDescription className="text-sm sm:text-base">
                   {totalItems} names generated for your business
                 </CardDescription>
               </div>
-              
+
               {/* Pagination Controls */}
               {totalItems > 0 && (
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">Show:</span>
-                    <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                    <Select
+                      value={itemsPerPage.toString()}
+                      onValueChange={handleItemsPerPageChange}
+                    >
                       <SelectTrigger className="w-20 h-8 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -1208,7 +1449,7 @@ export default function ReportsPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
@@ -1219,11 +1460,11 @@ export default function ReportsPage() {
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    
+
                     <span className="text-sm text-muted-foreground min-w-[80px] text-center">
                       Page {currentPage} of {totalPages}
                     </span>
-                    
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -1246,15 +1487,21 @@ export default function ReportsPage() {
                   return (
                     <Card key={globalIndex} className="p-3 sm:p-4">
                       <div className="space-y-2">
-                        <h4 className="font-semibold text-base sm:text-lg break-words">{name.name}</h4>
+                        <h4 className="font-semibold text-base sm:text-lg break-words">
+                          {name.name}
+                        </h4>
                         {name.tagline && (
-                          <p className="text-sm text-muted-foreground break-words">{name.tagline}</p>
+                          <p className="text-sm text-muted-foreground break-words">
+                            {name.tagline}
+                          </p>
                         )}
                         <div className="flex items-center justify-between">
                           <Badge variant="outline" className="text-xs">
                             {name.style}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">#{globalIndex + 1}</span>
+                          <span className="text-xs text-muted-foreground">
+                            #{globalIndex + 1}
+                          </span>
                         </div>
                       </div>
                     </Card>
@@ -1284,8 +1531,12 @@ export default function ReportsPage() {
         {/* Report Overview */}
         <Card>
           <CardHeader className="pb-2 sm:pb-3">
-            <CardTitle className="text-base sm:text-lg">Keyword Report Overview</CardTitle>
-            <CardDescription className="text-sm sm:text-base">Comprehensive keyword analysis summary</CardDescription>
+            <CardTitle className="text-base sm:text-lg">
+              Keyword Report Overview
+            </CardTitle>
+            <CardDescription className="text-sm sm:text-base">
+              Comprehensive keyword analysis summary
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -1294,28 +1545,36 @@ export default function ReportsPage() {
                   <FileText className="w-4 h-4" />
                   <span>Topic</span>
                 </div>
-                <p className="font-medium text-sm sm:text-base break-words">{selectedReport.topic}</p>
+                <p className="font-medium text-sm sm:text-base break-words">
+                  {selectedReport.topic}
+                </p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Building className="w-4 h-4" />
                   <span>Industry</span>
                 </div>
-                <p className="font-medium text-sm sm:text-base break-words">{selectedReport.industry}</p>
+                <p className="font-medium text-sm sm:text-base break-words">
+                  {selectedReport.industry}
+                </p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <BarChart3 className="w-4 h-4" />
                   <span>Total Volume</span>
                 </div>
-                <p className="font-medium text-sm sm:text-base">{selectedReport.totalSearchVolume.toLocaleString()}</p>
+                <p className="font-medium text-sm sm:text-base">
+                  {selectedReport.totalSearchVolume.toLocaleString()}
+                </p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Target className="w-4 h-4" />
                   <span>Avg CPC</span>
                 </div>
-                <p className="font-medium text-sm sm:text-base">${selectedReport.averageCPC?.toFixed(2)}</p>
+                <p className="font-medium text-sm sm:text-base">
+                  ${selectedReport.averageCPC?.toFixed(2)}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -1326,18 +1585,23 @@ export default function ReportsPage() {
           <CardHeader className="pb-2">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
-                <CardTitle className="text-base sm:text-lg">Keyword Analysis</CardTitle>
+                <CardTitle className="text-base sm:text-lg">
+                  Keyword Analysis
+                </CardTitle>
                 <CardDescription className="text-sm sm:text-base">
                   {totalItems} keywords analyzed with detailed metrics
                 </CardDescription>
               </div>
-              
+
               {/* Pagination Controls */}
               {totalItems > 0 && (
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">Show:</span>
-                    <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                    <Select
+                      value={itemsPerPage.toString()}
+                      onValueChange={handleItemsPerPageChange}
+                    >
                       <SelectTrigger className="w-20 h-8 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -1349,7 +1613,7 @@ export default function ReportsPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
@@ -1360,11 +1624,11 @@ export default function ReportsPage() {
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    
+
                     <span className="text-sm text-muted-foreground min-w-[80px] text-center">
                       Page {currentPage} of {totalPages}
                     </span>
-                    
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -1388,26 +1652,44 @@ export default function ReportsPage() {
                     <Card key={globalIndex} className="p-3 sm:p-4">
                       <div className="flex items-start justify-between">
                         <div className="space-y-2 flex-1 min-w-0">
-                          <h4 className="font-semibold text-sm sm:text-base break-words">{keyword.keyword}</h4>
+                          <h4 className="font-semibold text-sm sm:text-base break-words">
+                            {keyword.keyword}
+                          </h4>
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs sm:text-sm">
                             <div>
-                              <span className="text-muted-foreground">Type:</span>
+                              <span className="text-muted-foreground">
+                                Type:
+                              </span>
                               <Badge variant="outline" className="ml-1 text-xs">
                                 {keyword.type}
                               </Badge>
                             </div>
                             <div>
-                              <span className="text-muted-foreground">Volume:</span>
-                              <span className="ml-1 font-medium">{keyword.search_volume}</span>
+                              <span className="text-muted-foreground">
+                                Volume:
+                              </span>
+                              <span className="ml-1 font-medium">
+                                {keyword.search_volume}
+                              </span>
                             </div>
                             <div>
-                              <span className="text-muted-foreground">CPC:</span>
-                              <span className="ml-1 font-medium">${keyword.cpc}</span>
+                              <span className="text-muted-foreground">
+                                CPC:
+                              </span>
+                              <span className="ml-1 font-medium">
+                                ${keyword.cpc}
+                              </span>
                             </div>
                             <div>
-                              <span className="text-muted-foreground">Difficulty:</span>
-                              <Badge 
-                                variant={keyword.difficulty_score === "Low" ? "default" : "secondary"} 
+                              <span className="text-muted-foreground">
+                                Difficulty:
+                              </span>
+                              <Badge
+                                variant={
+                                  keyword.difficulty_score === "Low"
+                                    ? "default"
+                                    : "secondary"
+                                }
                                 className="ml-1 text-xs"
                               >
                                 {keyword.difficulty_score}
@@ -1416,7 +1698,8 @@ export default function ReportsPage() {
                           </div>
                           {keyword.content_idea && (
                             <p className="text-xs sm:text-sm text-muted-foreground mt-2 break-words">
-                              <strong>Content Idea:</strong> {keyword.content_idea}
+                              <strong>Content Idea:</strong>{" "}
+                              {keyword.content_idea}
                             </p>
                           )}
                         </div>
@@ -1453,7 +1736,9 @@ export default function ReportsPage() {
         {/* Analysis Overview */}
         <Card>
           <CardHeader className="pb-2 sm:pb-3">
-            <CardTitle className="text-base sm:text-lg">Keyword Checker Analysis</CardTitle>
+            <CardTitle className="text-base sm:text-lg">
+              Keyword Checker Analysis
+            </CardTitle>
             <CardDescription className="text-sm sm:text-base">
               Comprehensive website keyword competitiveness analysis
             </CardDescription>
@@ -1465,14 +1750,18 @@ export default function ReportsPage() {
                   <Globe className="w-4 h-4" />
                   <span>Website</span>
                 </div>
-                <p className="font-medium text-sm sm:text-base break-all">{reportData.mainUrl}</p>
+                <p className="font-medium text-sm sm:text-base break-all">
+                  {reportData.mainUrl}
+                </p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <FileText className="w-4 h-4" />
                   <span>Pages Analyzed</span>
                 </div>
-                <p className="font-medium text-sm sm:text-base">{reportData.totalScraped || 0}</p>
+                <p className="font-medium text-sm sm:text-base">
+                  {reportData.totalScraped || 0}
+                </p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -1486,7 +1775,12 @@ export default function ReportsPage() {
                   <Clock className="w-4 h-4" />
                   <span>Status</span>
                 </div>
-                <Badge variant={reportData.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
+                <Badge
+                  variant={
+                    reportData.status === "completed" ? "default" : "secondary"
+                  }
+                  className="text-xs"
+                >
                   {reportData.status}
                 </Badge>
               </div>
@@ -1499,18 +1793,23 @@ export default function ReportsPage() {
           <CardHeader className="pb-2">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
-                <CardTitle className="text-base sm:text-lg">Keyword Analysis</CardTitle>
+                <CardTitle className="text-base sm:text-lg">
+                  Keyword Analysis
+                </CardTitle>
                 <CardDescription className="text-sm sm:text-base">
                   Detailed keyword competitiveness and opportunity analysis
                 </CardDescription>
               </div>
-              
+
               {/* Pagination Controls */}
               {totalItems > 0 && (
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">Show:</span>
-                    <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                    <Select
+                      value={itemsPerPage.toString()}
+                      onValueChange={handleItemsPerPageChange}
+                    >
                       <SelectTrigger className="w-20 h-8 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -1522,7 +1821,7 @@ export default function ReportsPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
@@ -1533,11 +1832,11 @@ export default function ReportsPage() {
                     >
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    
+
                     <span className="text-sm text-muted-foreground min-w-[80px] text-center">
                       Page {currentPage} of {totalPages}
                     </span>
-                    
+
                     <Button
                       variant="outline"
                       size="sm"
@@ -1560,40 +1859,59 @@ export default function ReportsPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="min-w-[120px]">Keyword</TableHead>
-                        <TableHead className="text-center min-w-[80px]">Intent</TableHead>
-                        <TableHead className="text-center min-w-[90px]">Difficulty</TableHead>
-                        <TableHead className="text-center min-w-[100px]">Search Volume</TableHead>
-                        <TableHead className="text-center min-w-[80px]">Relevance</TableHead>
+                        <TableHead className="text-center min-w-[80px]">
+                          Intent
+                        </TableHead>
+                        <TableHead className="text-center min-w-[90px]">
+                          Difficulty
+                        </TableHead>
+                        <TableHead className="text-center min-w-[100px]">
+                          Search Volume
+                        </TableHead>
+                        <TableHead className="text-center min-w-[80px]">
+                          Relevance
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {currentItems.map((keyword: any, index: number) => {
-                        const globalIndex = (currentPage - 1) * itemsPerPage + index;
+                        const globalIndex =
+                          (currentPage - 1) * itemsPerPage + index;
                         return (
                           <TableRow key={globalIndex}>
                             <TableCell className="font-medium text-sm break-words">
                               <div className="flex items-center justify-between">
                                 <span>{keyword.keyword}</span>
-                                <span className="text-xs text-muted-foreground ml-2">#{globalIndex + 1}</span>
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  #{globalIndex + 1}
+                                </span>
                               </div>
                             </TableCell>
                             <TableCell className="text-center">
-                              <Badge variant="outline" className="text-xs capitalize">
+                              <Badge
+                                variant="outline"
+                                className="text-xs capitalize"
+                              >
                                 {keyword.intent || "N/A"}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-center">
-                              <Badge 
+                              <Badge
                                 variant={
-                                  keyword.difficulty === "Low" ? "default" : 
-                                  keyword.difficulty === "Medium" ? "secondary" : "destructive"
+                                  keyword.difficulty === "Low"
+                                    ? "default"
+                                    : keyword.difficulty === "Medium"
+                                    ? "secondary"
+                                    : "destructive"
                                 }
                                 className="text-xs"
                               >
                                 {keyword.difficulty || "N/A"}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-center text-sm">{keyword.search_volume || "N/A"}</TableCell>
+                            <TableCell className="text-center text-sm">
+                              {keyword.search_volume || "N/A"}
+                            </TableCell>
                             <TableCell className="text-center">
                               <Badge variant="outline" className="text-xs">
                                 {keyword.relevance_score || 0}/10
@@ -1619,32 +1937,51 @@ export default function ReportsPage() {
         {summary.primary_keywords && summary.primary_keywords.length > 0 && (
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-base sm:text-lg">Key Findings</CardTitle>
+              <CardTitle className="text-base sm:text-lg">
+                Key Findings
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-semibold text-sm sm:text-base mb-2">Primary Keywords</h4>
+                  <h4 className="font-semibold text-sm sm:text-base mb-2">
+                    Primary Keywords
+                  </h4>
                   <div className="flex flex-wrap gap-2">
-                    {summary.primary_keywords.slice(0, 8).map((keyword: string, index: number) => (
-                      <Badge key={index} variant="default" className="text-xs">
-                        {keyword}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                {summary.secondary_keywords && summary.secondary_keywords.length > 0 && (
-                  <div>
-                    <h4 className="font-semibold text-sm sm:text-base mb-2">Secondary Keywords</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {summary.secondary_keywords.slice(0, 8).map((keyword: string, index: number) => (
-                        <Badge key={index} variant="secondary" className="text-xs">
+                    {summary.primary_keywords
+                      .slice(0, 8)
+                      .map((keyword: string, index: number) => (
+                        <Badge
+                          key={index}
+                          variant="default"
+                          className="text-xs"
+                        >
                           {keyword}
                         </Badge>
                       ))}
-                    </div>
                   </div>
-                )}
+                </div>
+                {summary.secondary_keywords &&
+                  summary.secondary_keywords.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-sm sm:text-base mb-2">
+                        Secondary Keywords
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {summary.secondary_keywords
+                          .slice(0, 8)
+                          .map((keyword: string, index: number) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {keyword}
+                            </Badge>
+                          ))}
+                      </div>
+                    </div>
+                  )}
               </div>
             </CardContent>
           </Card>
@@ -1653,293 +1990,387 @@ export default function ReportsPage() {
     );
   };
 
-// ✅ Keyword Scraper Detailed View with Pagination
-const renderKeywordScraperDetailedView = () => {
-  const reportData = detailedKeywordAnalysis || selectedReport;
-  const keywordData = reportData.keywordData || {};
-  const scrapedPages = reportData.scrapedPages || [];
-  const currentItems = getCurrentItems();
-  const totalPages = getTotalPages();
-  const totalItems = keywordData.primary_keywords?.length || 0;
-  const currentScrapedPages = getCurrentScrapedPages();
-  const totalScrapedPages = getTotalScrapedPages();
+  // ✅ Keyword Scraper Detailed View with Pagination
+  const renderKeywordScraperDetailedView = () => {
+    const reportData = detailedKeywordAnalysis || selectedReport;
+    const keywordData = reportData.keywordData || {};
+    const scrapedPages = reportData.scrapedPages || [];
+    const currentItems = getCurrentItems();
+    const totalPages = getTotalPages();
+    const totalItems = keywordData.primary_keywords?.length || 0;
+    const currentScrapedPages = getCurrentScrapedPages();
+    const totalScrapedPages = getTotalScrapedPages();
 
-  return (
-    <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
-      {/* Analysis Overview */}
-      <Card>
-        <CardHeader className="pb-2 sm:pb-3">
-          <CardTitle className="text-base sm:text-lg">Keyword Scraper Analysis</CardTitle>
-          <CardDescription className="text-sm sm:text-base">
-            Comprehensive website content and keyword extraction
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Globe className="w-4 h-4" />
-                <span>Website</span>
-              </div>
-              <p className="font-medium text-sm sm:text-base break-all">{reportData.mainUrl}</p>
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <FileText className="w-4 h-4" />
-                <span>Pages Scraped</span>
-              </div>
-              <p className="font-medium text-sm sm:text-base">{reportData.totalPagesScraped || 0}</p>
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Target className="w-4 h-4" />
-                <span>Keywords Found</span>
-              </div>
-              <p className="font-medium text-sm sm:text-base">{reportData.totalKeywordsFound || 0}</p>
-            </div>
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="w-4 h-4" />
-                <span>Status</span>
-              </div>
-              <Badge variant={reportData.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
-                {reportData.status}
-              </Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Extracted Keywords with Pagination */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div>
-              <CardTitle className="text-base sm:text-lg">Extracted Keywords</CardTitle>
-              <CardDescription className="text-sm sm:text-base">
-                Keywords extracted from website content with intent classification
-              </CardDescription>
-            </div>
-            
-            {/* Pagination Controls */}
-            {totalItems > 0 && (
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Show:</span>
-                  <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
-                    <SelectTrigger className="w-20 h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                  </Select>
+    return (
+      <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
+        {/* Analysis Overview */}
+        <Card>
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardTitle className="text-base sm:text-lg">
+              Keyword Scraper Analysis
+            </CardTitle>
+            <CardDescription className="text-sm sm:text-base">
+              Comprehensive website content and keyword extraction
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Globe className="w-4 h-4" />
+                  <span>Website</span>
                 </div>
-                
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePrevPage}
-                    disabled={currentPage === 1}
-                    className="h-8 w-8 p-0"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  
-                  <span className="text-sm text-muted-foreground min-w-[80px] text-center">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleNextPage}
-                    disabled={currentPage === totalPages}
-                    className="h-8 w-8 p-0"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+                <p className="font-medium text-sm sm:text-base break-all">
+                  {reportData.mainUrl}
+                </p>
               </div>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="primary" className="w-full">
-            <TabsList className="flex w-full overflow-x-auto">
-              <TabsTrigger value="primary" className="flex-1 min-w-0 text-xs sm:text-sm">Primary</TabsTrigger>
-              <TabsTrigger value="secondary" className="flex-1 min-w-0 text-xs sm:text-sm">Secondary</TabsTrigger>
-              <TabsTrigger value="intent" className="flex-1 min-w-0 text-xs sm:text-sm">Intent</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="primary" className="space-y-3 pt-3">
-              {currentItems.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {currentItems.map((keyword: string, index: number) => {
-                    const globalIndex = (currentPage - 1) * itemsPerPage + index;
-                    return (
-                      <Badge key={globalIndex} variant="default" className="text-xs sm:text-sm">
-                        {keyword} <span className="text-xs opacity-70 ml-1">#{globalIndex + 1}</span>
-                      </Badge>
-                    );
-                  })}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <FileText className="w-4 h-4" />
+                  <span>Pages Scraped</span>
                 </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-4">No primary keywords found.</p>
-              )}
-            </TabsContent>
-
-            <TabsContent value="secondary" className="space-y-3 pt-3">
-              {keywordData.secondary_keywords && keywordData.secondary_keywords.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {keywordData.secondary_keywords.slice(0, 50).map((keyword: string, index: number) => (
-                    <Badge key={index} variant="secondary" className="text-xs sm:text-sm">
-                      {keyword}
-                    </Badge>
-                  ))}
+                <p className="font-medium text-sm sm:text-base">
+                  {reportData.totalPagesScraped || 0}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Target className="w-4 h-4" />
+                  <span>Keywords Found</span>
                 </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-4">No secondary keywords found.</p>
-              )}
-            </TabsContent>
-
-            <TabsContent value="intent" className="space-y-4 pt-3">
-              {keywordData.keyword_intent ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(keywordData.keyword_intent).map(([intent, keywords]: [string, any]) => (
-                    <Card key={intent}>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm capitalize">{intent} Keywords</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        {keywords && keywords.length > 0 ? (
-                          <div className="flex flex-wrap gap-1">
-                            {keywords.slice(0, 6).map((keyword: string, index: number) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {keyword}
-                              </Badge>
-                            ))}
-                            {keywords.length > 6 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{keywords.length - 6} more
-                              </Badge>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-muted-foreground">No {intent} keywords</p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
+                <p className="font-medium text-sm sm:text-base">
+                  {reportData.totalKeywordsFound || 0}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="w-4 h-4" />
+                  <span>Status</span>
                 </div>
-              ) : (
-                <p className="text-muted-foreground text-center py-4">No intent analysis available.</p>
-              )}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+                <Badge
+                  variant={
+                    reportData.status === "completed" ? "default" : "secondary"
+                  }
+                  className="text-xs"
+                >
+                  {reportData.status}
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Scraped Pages Summary with Pagination */}
-      {scrapedPages.length > 0 && (
+        {/* Extracted Keywords with Pagination */}
         <Card>
           <CardHeader className="pb-2">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
               <div>
-                <CardTitle className="text-base sm:text-lg">Scraped Pages Summary</CardTitle>
+                <CardTitle className="text-base sm:text-lg">
+                  Extracted Keywords
+                </CardTitle>
                 <CardDescription className="text-sm sm:text-base">
-                  Overview of pages analyzed during the scraping process
+                  Keywords extracted from website content with intent
+                  classification
                 </CardDescription>
               </div>
-              
-              {/* Pagination Controls for Scraped Pages */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Show:</span>
-                  <Select value={scrapedPerPage.toString()} onValueChange={handleScrapedPerPageChange}>
-                    <SelectTrigger className="w-20 h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
-                      <SelectItem value="100">100</SelectItem>
-                    </SelectContent>
-                  </Select>
+
+              {/* Pagination Controls */}
+              {totalItems > 0 && (
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Show:</span>
+                    <Select
+                      value={itemsPerPage.toString()}
+                      onValueChange={handleItemsPerPageChange}
+                    >
+                      <SelectTrigger className="w-20 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePrevPage}
+                      disabled={currentPage === 1}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+
+                    <span className="text-sm text-muted-foreground min-w-[80px] text-center">
+                      Page {currentPage} of {totalPages}
+                    </span>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNextPage}
+                      disabled={currentPage === totalPages}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePrevScrapedPage}
-                    disabled={currentScrapedPage === 1}
-                    className="h-8 w-8 p-0"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  
-                  <span className="text-sm text-muted-foreground min-w-[80px] text-center">
-                    Page {currentScrapedPage} of {totalScrapedPages}
-                  </span>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleNextScrapedPage}
-                    disabled={currentScrapedPage === totalScrapedPages}
-                    className="h-8 w-8 p-0"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+              )}
             </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="min-w-[150px]">URL</TableHead>
-                    <TableHead className="text-center min-w-[60px]">Depth</TableHead>
-                    <TableHead className="text-center min-w-[70px]">Words</TableHead>
-                    <TableHead className="text-center min-w-[60px]">Links</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentScrapedPages.map((page: any, index: number) => {
-                    const globalIndex = (currentScrapedPage - 1) * scrapedPerPage + index;
-                    return (
-                      <TableRow key={globalIndex}>
-                        <TableCell className="max-w-[150px] sm:max-w-[200px] truncate text-xs sm:text-sm" title={page.url}>
-                          {page.url}
-                        </TableCell>
-                        <TableCell className="text-center text-xs sm:text-sm">{page.depth}</TableCell>
-                        <TableCell className="text-center text-xs sm:text-sm">{page.wordCount || 0}</TableCell>
-                        <TableCell className="text-center text-xs sm:text-sm">{page.foundLinks || 0}</TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-            <div className="text-center text-muted-foreground mt-4">
-              <p className="text-sm">
-                Showing {Math.min(scrapedPerPage, scrapedPages.length - (currentScrapedPage - 1) * scrapedPerPage)} of {scrapedPages.length} pages
-              </p>
-            </div>
+            <Tabs defaultValue="primary" className="w-full">
+              <TabsList className="flex w-full overflow-x-auto">
+                <TabsTrigger
+                  value="primary"
+                  className="flex-1 min-w-0 text-xs sm:text-sm"
+                >
+                  Primary
+                </TabsTrigger>
+                <TabsTrigger
+                  value="secondary"
+                  className="flex-1 min-w-0 text-xs sm:text-sm"
+                >
+                  Secondary
+                </TabsTrigger>
+                <TabsTrigger
+                  value="intent"
+                  className="flex-1 min-w-0 text-xs sm:text-sm"
+                >
+                  Intent
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="primary" className="space-y-3 pt-3">
+                {currentItems.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {currentItems.map((keyword: string, index: number) => {
+                      const globalIndex =
+                        (currentPage - 1) * itemsPerPage + index;
+                      return (
+                        <Badge
+                          key={globalIndex}
+                          variant="default"
+                          className="text-xs sm:text-sm"
+                        >
+                          {keyword}{" "}
+                          <span className="text-xs opacity-70 ml-1">
+                            #{globalIndex + 1}
+                          </span>
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-4">
+                    No primary keywords found.
+                  </p>
+                )}
+              </TabsContent>
+
+              <TabsContent value="secondary" className="space-y-3 pt-3">
+                {keywordData.secondary_keywords &&
+                keywordData.secondary_keywords.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {keywordData.secondary_keywords
+                      .slice(0, 50)
+                      .map((keyword: string, index: number) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="text-xs sm:text-sm"
+                        >
+                          {keyword}
+                        </Badge>
+                      ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-4">
+                    No secondary keywords found.
+                  </p>
+                )}
+              </TabsContent>
+
+              <TabsContent value="intent" className="space-y-4 pt-3">
+                {keywordData.keyword_intent ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Object.entries(keywordData.keyword_intent).map(
+                      ([intent, keywords]: [string, any]) => (
+                        <Card key={intent}>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm capitalize">
+                              {intent} Keywords
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            {keywords && keywords.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {keywords
+                                  .slice(0, 6)
+                                  .map((keyword: string, index: number) => (
+                                    <Badge
+                                      key={index}
+                                      variant="outline"
+                                      className="text-xs"
+                                    >
+                                      {keyword}
+                                    </Badge>
+                                  ))}
+                                {keywords.length > 6 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{keywords.length - 6} more
+                                  </Badge>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-muted-foreground">
+                                No {intent} keywords
+                              </p>
+                            )}
+                          </CardContent>
+                        </Card>
+                      )
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-center py-4">
+                    No intent analysis available.
+                  </p>
+                )}
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
-      )}
-    </div>
-  );
-};
+
+        {/* Scraped Pages Summary with Pagination */}
+        {scrapedPages.length > 0 && (
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                <div>
+                  <CardTitle className="text-base sm:text-lg">
+                    Scraped Pages Summary
+                  </CardTitle>
+                  <CardDescription className="text-sm sm:text-base">
+                    Overview of pages analyzed during the scraping process
+                  </CardDescription>
+                </div>
+
+                {/* Pagination Controls for Scraped Pages */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Show:</span>
+                    <Select
+                      value={scrapedPerPage.toString()}
+                      onValueChange={handleScrapedPerPageChange}
+                    >
+                      <SelectTrigger className="w-20 h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePrevScrapedPage}
+                      disabled={currentScrapedPage === 1}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+
+                    <span className="text-sm text-muted-foreground min-w-[80px] text-center">
+                      Page {currentScrapedPage} of {totalScrapedPages}
+                    </span>
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNextScrapedPage}
+                      disabled={currentScrapedPage === totalScrapedPages}
+                      className="h-8 w-8 p-0"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[150px]">URL</TableHead>
+                      <TableHead className="text-center min-w-[60px]">
+                        Depth
+                      </TableHead>
+                      <TableHead className="text-center min-w-[70px]">
+                        Words
+                      </TableHead>
+                      <TableHead className="text-center min-w-[60px]">
+                        Links
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {currentScrapedPages.map((page: any, index: number) => {
+                      const globalIndex =
+                        (currentScrapedPage - 1) * scrapedPerPage + index;
+                      return (
+                        <TableRow key={globalIndex}>
+                          <TableCell
+                            className="max-w-[150px] sm:max-w-[200px] truncate text-xs sm:text-sm"
+                            title={page.url}
+                          >
+                            {page.url}
+                          </TableCell>
+                          <TableCell className="text-center text-xs sm:text-sm">
+                            {page.depth}
+                          </TableCell>
+                          <TableCell className="text-center text-xs sm:text-sm">
+                            {page.wordCount || 0}
+                          </TableCell>
+                          <TableCell className="text-center text-xs sm:text-sm">
+                            {page.foundLinks || 0}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="text-center text-muted-foreground mt-4">
+                <p className="text-sm">
+                  Showing{" "}
+                  {Math.min(
+                    scrapedPerPage,
+                    scrapedPages.length -
+                      (currentScrapedPage - 1) * scrapedPerPage
+                  )}{" "}
+                  of {scrapedPages.length} pages
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    );
+  };
 
   // ✅ Default Detailed View
   const renderDefaultDetailedView = () => (
@@ -1948,7 +2379,8 @@ const renderKeywordScraperDetailedView = () => {
         <CardHeader>
           <CardTitle>Report Details</CardTitle>
           <CardDescription>
-            Complete information for this {getServiceDisplayName(selectedReport.service).slice(0, -1)}
+            Complete information for this{" "}
+            {getServiceDisplayName(selectedReport.service).slice(0, -1)}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -1961,9 +2393,11 @@ const renderKeywordScraperDetailedView = () => {
   );
 
   const metaPropsData = {
-    title: "SEO Audit Reports | Comprehensive Website Analysis & Insights",
-    description: "Access detailed SEO audit reports with performance scores, actionable recommendations, and comprehensive website analysis for better search rankings.",
-    keyword: "SEO audit reports, website analysis, performance scores, audit insights, SEO recommendations",
+    title: "SEO Audit Reports - Website Analysis & Performance Dashboard",
+    description:
+      "Access comprehensive SEO audit reports with detailed website analysis, performance scores, and actionable recommendations to improve your search rankings.",
+    keyword:
+      "seo audit reports, website audit report, seo score tracker, seo performance dashboard, website analysis report, audit history",
     url: "https://rankseo.in/profile/reports",
     image: "https://rankseo.in/SEO_LOGO.png",
   };
@@ -1985,7 +2419,7 @@ const renderKeywordScraperDetailedView = () => {
           <Link href={getServiceLink()} className="w-full sm:w-auto">
             <Button className="w-full sm:w-auto text-sm sm:text-base">
               <Plus className="w-4 h-4 mr-2" />
-              New {getServiceDisplayName(selectedService).replace('s', '')}
+              New {getServiceDisplayName(selectedService).replace("s", "")}
             </Button>
           </Link>
         </div>
@@ -1995,29 +2429,48 @@ const renderKeywordScraperDetailedView = () => {
           <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-6">
               <div className="flex-1 w-full">
-                <label className="text-sm font-medium mb-2 block">Select Service</label>
-                <Select value={selectedService} onValueChange={(value: ServiceType) => setSelectedService(value)}>
+                <label className="text-sm font-medium mb-2 block">
+                  Select Service
+                </label>
+                <Select
+                  value={selectedService}
+                  onValueChange={(value: ServiceType) =>
+                    setSelectedService(value)
+                  }
+                >
                   <SelectTrigger className="w-full lg:w-64">
                     <SelectValue placeholder="Select a service" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="seo-audit">SEO Audits</SelectItem>
-                    <SelectItem value="business-names">Business Names</SelectItem>
-                    <SelectItem value="keyword-reports">Keyword Reports</SelectItem>
-                    <SelectItem value="keyword-checker">Keyword Checker</SelectItem>
-                    <SelectItem value="keyword-scraper">Keyword Scraper</SelectItem>
+                    <SelectItem value="business-names">
+                      Business Names
+                    </SelectItem>
+                    <SelectItem value="keyword-reports">
+                      Keyword Reports
+                    </SelectItem>
+                    <SelectItem value="keyword-checker">
+                      Keyword Checker
+                    </SelectItem>
+                    <SelectItem value="keyword-scraper">
+                      Keyword Scraper
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
+
               {/* Summary Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 w-full lg:w-auto">
                 <Card className="bg-muted/50">
                   <CardContent className="p-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs text-muted-foreground">Total Reports</p>
-                        <p className="text-lg sm:text-xl font-bold">{currentReports.length}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Total Reports
+                        </p>
+                        <p className="text-lg sm:text-xl font-bold">
+                          {currentReports.length}
+                        </p>
                       </div>
                       <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                         <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-primary" />
@@ -2026,37 +2479,46 @@ const renderKeywordScraperDetailedView = () => {
                   </CardContent>
                 </Card>
 
-                {selectedService === "seo-audit" && currentReports.length > 0 && (
-                  <>
-                    <Card className="bg-muted/50">
-                      <CardContent className="p-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-muted-foreground">Recent SEO</p>
-                            <p className="text-lg sm:text-xl font-bold">{currentReports[0].seoScore}</p>
+                {selectedService === "seo-audit" &&
+                  currentReports.length > 0 && (
+                    <>
+                      <Card className="bg-muted/50">
+                        <CardContent className="p-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                Recent SEO
+                              </p>
+                              <p className="text-lg sm:text-xl font-bold">
+                                {currentReports[0].seoScore}
+                              </p>
+                            </div>
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-secondary/10 rounded-lg flex items-center justify-center">
+                              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-secondary" />
+                            </div>
                           </div>
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-secondary/10 rounded-lg flex items-center justify-center">
-                            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-secondary" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
 
-                    <Card className="bg-muted/50 hidden lg:block">
-                      <CardContent className="p-3">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-muted-foreground">Recent Speed</p>
-                            <p className="text-lg sm:text-xl font-bold">{currentReports[0].speedScore}</p>
+                      <Card className="bg-muted/50 hidden lg:block">
+                        <CardContent className="p-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-xs text-muted-foreground">
+                                Recent Speed
+                              </p>
+                              <p className="text-lg sm:text-xl font-bold">
+                                {currentReports[0].speedScore}
+                              </p>
+                            </div>
+                            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-accent/10 rounded-lg flex items-center justify-center">
+                              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-accent" />
+                            </div>
                           </div>
-                          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-accent/10 rounded-lg flex items-center justify-center">
-                            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-accent" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </>
-                )}
+                        </CardContent>
+                      </Card>
+                    </>
+                  )}
               </div>
             </div>
           </CardContent>
@@ -2070,7 +2532,8 @@ const renderKeywordScraperDetailedView = () => {
                 {getServiceDisplayName(selectedService)}
               </CardTitle>
               <CardDescription className="text-sm sm:text-base">
-                Detailed view of all your {getServiceDisplayName(selectedService).toLowerCase()}
+                Detailed view of all your{" "}
+                {getServiceDisplayName(selectedService).toLowerCase()}
               </CardDescription>
             </div>
           </CardHeader>
@@ -2081,7 +2544,9 @@ const renderKeywordScraperDetailedView = () => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                  placeholder={`Search ${getServiceDisplayName(selectedService).toLowerCase()}...`}
+                  placeholder={`Search ${getServiceDisplayName(
+                    selectedService
+                  ).toLowerCase()}...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 text-sm sm:text-base"
@@ -2101,9 +2566,7 @@ const renderKeywordScraperDetailedView = () => {
             <div className="border rounded-lg overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    {getTableColumns()}
-                  </TableRow>
+                  <TableRow>{getTableColumns()}</TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
@@ -2120,7 +2583,9 @@ const renderKeywordScraperDetailedView = () => {
                         colSpan={8}
                         className="text-center py-8 text-muted-foreground text-sm sm:text-base"
                       >
-                        No {getServiceDisplayName(selectedService).toLowerCase()} found matching your criteria.
+                        No{" "}
+                        {getServiceDisplayName(selectedService).toLowerCase()}{" "}
+                        found matching your criteria.
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -2140,7 +2605,11 @@ const renderKeywordScraperDetailedView = () => {
                 {getServiceDisplayName(selectedReport?.service)} Report
               </DialogTitle>
               <DialogDescription className="text-sm sm:text-base">
-                Detailed view for {selectedReport?.website || selectedReport?.topic || selectedReport?.mainUrl || "this report"}
+                Detailed view for{" "}
+                {selectedReport?.website ||
+                  selectedReport?.topic ||
+                  selectedReport?.mainUrl ||
+                  "this report"}
               </DialogDescription>
             </DialogHeader>
 

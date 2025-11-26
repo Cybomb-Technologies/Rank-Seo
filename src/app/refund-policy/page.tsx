@@ -3,9 +3,10 @@ import Metatags from "../../SEO/metatags";
 
 export default function RefundPolicyPage() {
   const metaPropsData = {
-    title: "Refund Policy | SEO Audit Tool Money-Back Guarantee",
+    title:
+      "Rank SEO Refund Policy - Money-Back Guarantee for Subscription Refunds",
     description:
-      "Learn about our refund policy for RANK SEO audit services. 7-day money-back guarantee for eligible cases. Clear terms for subscription refunds.",
+      "Our Rank SEO refund policy offers a clear money-back guarantee for subscription refunds. Learn about the terms for our SEO tool refund policy and claims process.",
     keyword:
       "SEO audit refund policy, money-back guarantee, subscription refund, SEO tool refund policy",
     url: "https://rankseo.in/refund-policy",
