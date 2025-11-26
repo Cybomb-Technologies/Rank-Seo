@@ -72,7 +72,7 @@ export default function PricingPage() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">(
     "annual"
   );
-  const [currency, setCurrency] = useState<"USD" | "INR">("USD");
+  const [currency, setCurrency] = useState<"USD" | "INR">("INR");
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -81,7 +81,7 @@ export default function PricingPage() {
   const [currentPlan, setCurrentPlan] = useState<UserSubscription | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
-  const exchangeRate = 83.5;
+  const exchangeRate = process.env.NEXT_PUBLIC_EXCHANGE_RATE ? Number(process.env.NEXT_PUBLIC_EXCHANGE_RATE) : 83.4;
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   useEffect(() => {
