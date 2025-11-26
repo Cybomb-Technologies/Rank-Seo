@@ -5,16 +5,20 @@ const bcrypt = require('bcryptjs');
 const UserSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        trim: true,
+        lowercase: true
     },
     mobile: {
         type: String,
-        required: false
+        required: false,
+        sparse: true
     },
     password: {
         type: String,
@@ -44,7 +48,6 @@ const UserSchema = new mongoose.Schema({
         type: Date,
         required: false,
     },
-    
     lastLogin: {
         type: Date,
         default: Date.now
@@ -99,7 +102,6 @@ const UserSchema = new mongoose.Schema({
         default: 0
     },
     
-    
     // Limits (will be populated from plan)
     maxAuditsPerMonth: {
         type: Number,
@@ -122,7 +124,6 @@ const UserSchema = new mongoose.Schema({
         default: 5
     },
     
-    
     // Reset tracking
     lastUsageReset: {
         type: Date,
@@ -132,6 +133,10 @@ const UserSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// Add index for mobile field to be sparse (allows multiple null values)
+UserSchema.index({ mobile: 1 }, { sparse: true });
+
+// Password hashing middleware
 UserSchema.pre('save', async function(next) {
     if (!this.isModified('password') || !this.password) {
         return next();
@@ -140,6 +145,11 @@ UserSchema.pre('save', async function(next) {
     this.password = await bcrypt.hash(this.password, salt);
     next();
 });
+
+// Method to check password
+UserSchema.methods.comparePassword = async function(candidatePassword) {
+    return await bcrypt.compare(candidatePassword, this.password);
+};
 
 const User = mongoose.model('User', UserSchema);
 module.exports = User;

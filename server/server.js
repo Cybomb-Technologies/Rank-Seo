@@ -24,7 +24,7 @@ require("./cronJobs");
 console.log("JWT_SECRET loaded:", process.env.JWT_SECRET);
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 
 // Body parser
 app.use(express.json());
