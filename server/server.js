@@ -29,13 +29,18 @@ const PORT = process.env.PORT;
 // Body parser
 app.use(express.json());
 
-// CORS - allow frontend to send credentials
-app.use(
-  cors({
-    origin: ["http://localhost:3000", "http://localhost:3001", "https://rankseo.in"], // Added localhost:3000
-    credentials: true,
-  })
-);
+
+app.use(cors({
+  origin: [ 'http://localhost:3000',
+  'http://localhost:5173',
+  "http://localhost:3000", "http://localhost:3001", "https://rankseo.in",
+  'https://api.cybomb.com',
+  'http://147.93.111.96:5000',
+  'https://admin.cybomb.com'], // your frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], // include PATCH method
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'], // include necessary headers
+  credentials: true // allow cookies/auth headers if needed
+}));
 
 // Connect to MongoDB
 connectDB();

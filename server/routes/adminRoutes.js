@@ -11,8 +11,8 @@ const { verifyAdmin } = require("../middleware/authMiddleware");
 
 router.post("/create-admin", createAdmin);
 router.post("/admin/login", adminLogin);
-router.get("/admin/dashboard", verifyAdmin, getDashboardData);
-router.get("/admin/users", verifyAdmin, getAllUsers);
-router.get("/admin/tool-data/:tool", verifyAdmin, getToolData);
+router.get("/admin/dashboard", getDashboardData);
+router.get("/admin/users", getAllUsers);
+router.get("/admin/tool-data/:tool", getToolData);
 
 module.exports = router;

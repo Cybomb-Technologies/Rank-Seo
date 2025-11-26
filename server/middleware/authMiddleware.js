@@ -2,7 +2,27 @@ const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
+// ✅ Allowed domains (bypass token verification)
+const ALLOWED_DOMAINS = [
+  "https://cybombadmin.cybomb.com",
+  "http://localhost:5173",
+  "http://localhost:5001"
+];
+
 const verifyAdmin = async (req, res, next) => {
+  const origin = req.headers.origin;
+  const referer = req.headers.referer || "";
+
+  // If request is from allowed domain, skip token check
+  if (
+    (origin && ALLOWED_DOMAINS.includes(origin)) ||
+    ALLOWED_DOMAINS.some((d) => referer.startsWith(d))
+  ) {
+    console.log("✅ Domain allowed without token:", origin || referer);
+    return next();
+  }
+
+  // Otherwise, verify JWT token
   const token = req.header('Authorization')?.replace('Bearer ', '');
 
   if (!token) {

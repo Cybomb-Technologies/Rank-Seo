@@ -8,7 +8,7 @@ const nodemailer = require("nodemailer");
 require("dotenv").config();
 
 const CASHFREE_BASE_URL = process.env.CASHFREE_BASE_URL;
-const EXCHANGE_RATE = process.env.EXCHANGE_RATE ? Number(process.env.EXCHANGE_RATE) : 83.5;
+const EXCHANGE_RATE = process.env.EXCHANGE_RATE ? Number(process.env.EXCHANGE_RATE) : 83.3;
 const TAX_RATE = 0.18; // 18% GST
 
 // Configure email transporter
@@ -353,7 +353,7 @@ const createOrder = async (req, res) => {
       },
       order_note: `Plan: ${plan.name}, Billing: ${billingCycle}, Currency: ${orderCurrency}`,
       order_meta: {
-        return_url: `${process.env.CLIENT_URL || "http://localhost:3000"}/payment/result?order_id={order_id}`,
+        return_url: `${process.env.CLIENT_URL || "http://localhost:3001"}/payment/result?order_id={order_id}`,
         notify_url: `${process.env.API_URL || "http://localhost:5000"}/api/payments/webhook`
       }
     };
