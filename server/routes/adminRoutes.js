@@ -13,6 +13,7 @@ const {
 const ALLOWED_DOMAINS = [
   "https://rankseoadmin.rankseo.com",
   "http://localhost:5173",
+  "https://cybombadmin.cybomb.com"
 ];
 
 // ✅ Auth Middleware (Modified)
