@@ -6,7 +6,8 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 const ALLOWED_DOMAINS = [
   "https://cybombadmin.cybomb.com",
   "http://localhost:5173",
-  "http://localhost:5001"
+  "http://localhost:3001",
+  "https://rankseo.in"
 ];
 
 const verifyAdmin = async (req, res, next) => {
