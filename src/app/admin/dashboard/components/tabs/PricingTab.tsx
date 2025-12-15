@@ -15,6 +15,9 @@ interface PricingPlan {
   description: string;
   monthlyUSD?: number;
   annualUSD?: number;
+  monthlyINR?: number;
+  annualINR?: number;
+
   maxAuditsPerMonth?: number;
   maxKeywordReportsPerMonth?: number;
   maxBusinessNamesPerMonth?: number;
@@ -34,12 +37,16 @@ export default function AdminPricingPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [currencyMode, setCurrencyMode] = useState<'USD' | 'INR'>('USD');
 
   const [newPlan, setNewPlan] = useState<Omit<PricingPlan, '_id'>>({
     name: "",
     description: "",
     monthlyUSD: undefined,
     annualUSD: undefined,
+    monthlyINR: undefined,
+    annualINR: undefined,
+
     maxAuditsPerMonth: undefined,
     maxKeywordReportsPerMonth: undefined,
     maxBusinessNamesPerMonth: undefined,
@@ -119,6 +126,9 @@ export default function AdminPricingPage() {
       ...newPlan,
       monthlyUSD: newPlan.isFree ? 0 : newPlan.monthlyUSD,
       annualUSD: newPlan.isFree ? 0 : newPlan.annualUSD,
+      monthlyINR: newPlan.isFree ? 0 : newPlan.monthlyINR,
+      annualINR: newPlan.isFree ? 0 : newPlan.annualINR,
+
       features: newPlan.features.filter(f => f.name.trim() !== ""),
     };
 
@@ -128,6 +138,9 @@ export default function AdminPricingPage() {
       description: "",
       monthlyUSD: undefined,
       annualUSD: undefined,
+      monthlyINR: undefined,
+      annualINR: undefined,
+
       maxAuditsPerMonth: undefined,
       maxKeywordReportsPerMonth: undefined,
       maxBusinessNamesPerMonth: undefined,
@@ -154,6 +167,9 @@ export default function AdminPricingPage() {
           [field]: value,
           monthlyUSD: 0,
           annualUSD: 0,
+          monthlyINR: 0,
+          annualINR: 0,
+
           custom: false
         };
       } else {
@@ -306,11 +322,37 @@ export default function AdminPricingPage() {
     <div className="min-h-screen bg-gray-50 text-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Manage Pricing Plans</h1>
-          <p className="text-gray-600">
-            Configure and manage your subscription plans dynamically
-          </p>
+        <div className="mb-8 flex justify-between items-end">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Manage Pricing Plans</h1>
+            <p className="text-gray-600">
+              Configure and manage your subscription plans dynamically
+            </p>
+          </div>
+          
+          {/* Currency Toggle */}
+          <div className="flex bg-gray-200 p-1 rounded-lg">
+            <button
+              onClick={() => setCurrencyMode('USD')}
+              className={`px-4 py-2 rounded-md font-medium text-sm transition-all ${
+                currencyMode === 'USD' 
+                  ? 'bg-white text-blue-600 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              USD Pricing
+            </button>
+            <button
+              onClick={() => setCurrencyMode('INR')}
+              className={`px-4 py-2 rounded-md font-medium text-sm transition-all ${
+                currencyMode === 'INR' 
+                  ? 'bg-white text-blue-600 shadow-sm' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              INR Pricing
+            </button>
+          </div>
         </div>
 
         {/* Message */}
@@ -350,28 +392,60 @@ export default function AdminPricingPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Price ($)</label>
-              <input
-                type="number"
-                placeholder="29"
-                value={newPlan.monthlyUSD || ""}
-                onChange={(e) => setNewPlan({ ...newPlan, monthlyUSD: e.target.value ? Number(e.target.value) : undefined })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                disabled={newPlan.isFree}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Annual Price ($)</label>
-              <input
-                type="number"
-                placeholder="290"
-                value={newPlan.annualUSD || ""}
-                onChange={(e) => setNewPlan({ ...newPlan, annualUSD: e.target.value ? Number(e.target.value) : undefined })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                disabled={newPlan.isFree}
-              />
-            </div>
+            
+            {/* Conditional Price Inputs based on Currency Mode */}
+            {currencyMode === 'USD' ? (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Price ($)</label>
+                  <input
+                    type="number"
+                    placeholder="29"
+                    value={newPlan.monthlyUSD || ""}
+                    onChange={(e) => setNewPlan({ ...newPlan, monthlyUSD: e.target.value ? Number(e.target.value) : undefined })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={newPlan.isFree}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Annual Price ($)</label>
+                  <input
+                    type="number"
+                    placeholder="290"
+                    value={newPlan.annualUSD || ""}
+                    onChange={(e) => setNewPlan({ ...newPlan, annualUSD: e.target.value ? Number(e.target.value) : undefined })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    disabled={newPlan.isFree}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Price (₹)</label>
+                  <input
+                    type="number"
+                    placeholder="2400"
+                    value={newPlan.monthlyINR || ""}
+                    onChange={(e) => setNewPlan({ ...newPlan, monthlyINR: e.target.value ? Number(e.target.value) : undefined })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-orange-50"
+                    disabled={newPlan.isFree}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Annual Price (₹)</label>
+                  <input
+                    type="number"
+                    placeholder="24000"
+                    value={newPlan.annualINR || ""}
+                    onChange={(e) => setNewPlan({ ...newPlan, annualINR: e.target.value ? Number(e.target.value) : undefined })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-orange-50"
+                    disabled={newPlan.isFree}
+                  />
+                </div>
+              </>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Max Audits/Month</label>
               <input
@@ -494,6 +568,8 @@ export default function AdminPricingPage() {
                   isFree: e.target.checked,
                   monthlyUSD: e.target.checked ? 0 : newPlan.monthlyUSD,
                   annualUSD: e.target.checked ? 0 : newPlan.annualUSD,
+                  monthlyINR: e.target.checked ? 0 : newPlan.monthlyINR,
+                  annualINR: e.target.checked ? 0 : newPlan.annualINR,
                   custom: e.target.checked ? false : newPlan.custom
                 })}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -601,26 +677,54 @@ export default function AdminPricingPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Monthly USD</label>
-                  <input
-                    type="number"
-                    value={plan.monthlyUSD || ""}
-                    onChange={(e) => updatePlan(planIndex, 'monthlyUSD', e.target.value ? Number(e.target.value) : undefined)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
-                    disabled={plan.custom || plan.isFree}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Annual USD</label>
-                  <input
-                    type="number"
-                    value={plan.annualUSD || ""}
-                    onChange={(e) => updatePlan(planIndex, 'annualUSD', e.target.value ? Number(e.target.value) : undefined)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
-                    disabled={plan.custom || plan.isFree}
-                  />
-                </div>
+                {/* Conditional Edit Price Inputs */}
+                {currencyMode === 'USD' ? (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Monthly USD</label>
+                      <input
+                        type="number"
+                        value={plan.monthlyUSD || ""}
+                        onChange={(e) => updatePlan(planIndex, 'monthlyUSD', e.target.value ? Number(e.target.value) : undefined)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                        disabled={plan.custom || plan.isFree}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Annual USD</label>
+                      <input
+                        type="number"
+                        value={plan.annualUSD || ""}
+                        onChange={(e) => updatePlan(planIndex, 'annualUSD', e.target.value ? Number(e.target.value) : undefined)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
+                        disabled={plan.custom || plan.isFree}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Monthly INR</label>
+                      <input
+                        type="number"
+                        value={plan.monthlyINR || ""}
+                        onChange={(e) => updatePlan(planIndex, 'monthlyINR', e.target.value ? Number(e.target.value) : undefined)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-orange-50 disabled:bg-gray-50 disabled:text-gray-500"
+                        disabled={plan.custom || plan.isFree}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Annual INR</label>
+                      <input
+                        type="number"
+                        value={plan.annualINR || ""}
+                        onChange={(e) => updatePlan(planIndex, 'annualINR', e.target.value ? Number(e.target.value) : undefined)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-orange-50 disabled:bg-gray-50 disabled:text-gray-500"
+                        disabled={plan.custom || plan.isFree}
+                      />
+                    </div>
+                  </>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Max Audits/Month</label>
                   <input

@@ -7,9 +7,22 @@ require("dotenv").config();
 // 🔹 Fetch plan limits from database
 const getPlanLimits = async (planId) => {
   try {
-    const plan = await PricingPlan.findById(planId);
+    let plan = null;
+    
+    // Try to find plan by ID if valid
+    const planIdStr = planId ? planId.toString() : "";
+    if (planId && planIdStr.match(/^[0-9a-fA-F]{24}$/)) {
+      plan = await PricingPlan.findById(planId);
+    }
+    
+    // If no plan found (or invalid ID), try to find the Free plan
     if (!plan) {
-      // Return default free tier limits
+      plan = await PricingPlan.findOne({ isFree: true });
+    }
+
+    if (!plan) {
+      console.warn("⚠️ No plan found in DB (even Free plan). Using hardcoded defaults.");
+      // Return default free tier limits as fallback
       return {
         maxAuditsPerMonth: 5,
         maxKeywordReportsPerMonth: 10,
@@ -21,17 +34,35 @@ const getPlanLimits = async (planId) => {
     }
 
     return {
-      maxAuditsPerMonth: plan.maxAuditsPerMonth || 5,
-      maxKeywordReportsPerMonth: plan.maxKeywordReportsPerMonth || 10,
-      maxBusinessNamesPerMonth: plan.maxBusinessNamesPerMonth || 5,
-      maxKeywordChecksPerMonth: plan.maxKeywordChecksPerMonth || 10,
-      maxKeywordScrapesPerMonth: plan.maxKeywordScrapesPerMonth || 5,
+      maxAuditsPerMonth: plan.maxAuditsPerMonth || 0,
+      maxKeywordReportsPerMonth: plan.maxKeywordReportsPerMonth || 0,
+      maxBusinessNamesPerMonth: plan.maxBusinessNamesPerMonth || 0,
+      maxKeywordChecksPerMonth: plan.maxKeywordChecksPerMonth || 0,
+      maxKeywordScrapesPerMonth: plan.maxKeywordScrapesPerMonth || 0,
 
       label: plan.name || "Free",
       planId: plan._id,
     };
   } catch (error) {
     console.error("Error fetching plan limits:", error);
+    // Attempt one last time to find Free plan if error wasn't related to DB connection
+    try {
+        const freePlan = await PricingPlan.findOne({ isFree: true });
+        if (freePlan) {
+            return {
+              maxAuditsPerMonth: freePlan.maxAuditsPerMonth || 0,
+              maxKeywordReportsPerMonth: freePlan.maxKeywordReportsPerMonth || 0,
+              maxBusinessNamesPerMonth: freePlan.maxBusinessNamesPerMonth || 0,
+              maxKeywordChecksPerMonth: freePlan.maxKeywordChecksPerMonth || 0,
+              maxKeywordScrapesPerMonth: freePlan.maxKeywordScrapesPerMonth || 0,
+              label: freePlan.name || "Free",
+              planId: freePlan._id,
+            };
+        }
+    } catch (innerErr) {
+        console.error("Double failure fetching plan:", innerErr);
+    }
+
     return {
       maxAuditsPerMonth: 5,
       maxKeywordReportsPerMonth: 10,

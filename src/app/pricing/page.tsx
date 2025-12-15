@@ -18,6 +18,8 @@ interface PricingPlan {
   description: string;
   monthlyUSD?: number;
   annualUSD?: number;
+  monthlyINR?: number;
+  annualINR?: number;
   features: Feature[];
   highlight?: boolean;
   custom?: boolean;
@@ -170,17 +172,34 @@ export default function PricingPage() {
 
   const formatPrice = (
     usdPrice: number | undefined,
+    inrPrice: number | undefined,
     isCustom: boolean = false
   ): string => {
-    if (isCustom || usdPrice === undefined) return "Custom";
+    if (isCustom) return "Custom";
 
     if (currency === "INR") {
-      const inrPrice = Math.round(usdPrice * exchangeRate);
-      return `₹${inrPrice.toLocaleString("en-IN")}${
-        billingCycle === "annual" ? "/year" : "/month"
-      }`;
+      // Use explicit INR price if available, otherwise fallback to conversion
+      if (inrPrice !== undefined && inrPrice !== null && inrPrice !== 0) {
+        return `₹${inrPrice.toLocaleString("en-IN")}${
+          billingCycle === "annual" ? "/year" : "/month"
+        }`;
+      }
+      
+      // Fallback to exchange rate calculation only if usdPrice is available
+      if (usdPrice !== undefined) {
+         const calculatedInr = Math.round(usdPrice * exchangeRate);
+         return `₹${calculatedInr.toLocaleString("en-IN")}${
+          billingCycle === "annual" ? "/year" : "/month"
+        }`;
+      }
+      
+      return "Custom";
     }
-    return `$${usdPrice}${billingCycle === "annual" ? "/year" : "/month"}`;
+    
+    // USD Case
+    return usdPrice !== undefined 
+      ? `$${usdPrice}${billingCycle === "annual" ? "/year" : "/month"}`
+      : "Custom";
   };
 
   const formatPriceDescription = (usdPrice: number | undefined): string => {
@@ -213,7 +232,12 @@ export default function PricingPage() {
     const targetPlan = plans.find((plan) => plan._id === planId);
     if (targetPlan?.isFree) {
       // Redirect free plan to dashboard
-      router.push("/dashboard");
+      router.push("/profile/dashboard");
+      return;
+    }
+    if (targetPlan?.custom) {
+      // Redirect custom plan to dashboard
+      router.push("/profile/support");
       return;
     }
 
@@ -295,6 +319,7 @@ export default function PricingPage() {
     plans.forEach((plan) => {
       pricingRow[plan.name.toLowerCase()] = formatPrice(
         billingCycle === "annual" ? plan.annualUSD : plan.monthlyUSD,
+        billingCycle === "annual" ? plan.annualINR : plan.monthlyINR,
         plan.custom
       );
     });
@@ -447,30 +472,7 @@ export default function PricingPage() {
               Choose the plan that works best for your business needs
             </p>
 
-            {/* Current Plan Badge */}
-            {currentPlan && (
-              <div className="mb-6">
-                <div className="inline-flex items-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium">
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  Current Plan: {currentPlan.planName}
-                  {hasActiveSubscription && currentPlan.autoRenewal && (
-                    <span className="ml-2 bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-                      Auto-renewal
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
+
 
             {error && (
               <div
@@ -482,7 +484,7 @@ export default function PricingPage() {
             )}
 
             {/* Currency Toggle */}
-            <div className="flex items-center justify-center gap-4 mb-4">
+            {/* <div className="flex items-center justify-center gap-4 mb-4">
               <span
                 className={`font-semibold ${
                   currency === "USD" ? "text-gray-900" : "text-gray-500"
@@ -508,16 +510,16 @@ export default function PricingPage() {
               >
                 INR
               </span>
-            </div>
+            </div> */}
 
             {/* Exchange Rate Notice */}
-            <div className="mb-4">
+            {/* <div className="mb-4">
               <p className="text-sm text-gray-600">
                 {currency === "INR"
                   ? `Exchange rate: 1 USD ≈ ₹${exchangeRate}. Prices in INR include all applicable taxes.`
                   : "All prices in USD. Switch to INR for local currency pricing."}
               </p>
-            </div>
+            </div> */}
 
             {/* Billing Toggle */}
             <div className="flex items-center justify-center gap-4 mt-6">
@@ -580,22 +582,7 @@ export default function PricingPage() {
                           Most Popular
                         </div>
                       )}
-                      {currentPlan && currentPlan.planId === plan._id && (
-                        <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center">
-                          <svg
-                            className="w-3 h-3 mr-1"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                          Current
-                        </div>
-                      )}
+
                     </div>
 
                     <div className="text-center mb-4">
@@ -604,17 +591,16 @@ export default function PricingPage() {
                       </h3>
                       <div className="text-2xl font-bold text-gray-900 mb-2">
                         {formatPrice(
-                          billingCycle === "annual"
-                            ? plan.annualUSD
-                            : plan.monthlyUSD,
+                          billingCycle === "annual" ? plan.annualUSD : plan.monthlyUSD,
+                          billingCycle === "annual" ? plan.annualINR : plan.monthlyINR,
                           plan.custom
                         )}
                       </div>
                       <p className="text-gray-600 text-xs mb-2">
                         {formatPriceDescription(
-                          billingCycle === "annual"
-                            ? plan.annualUSD
-                            : plan.monthlyUSD
+                          currency === "INR" 
+                            ? (billingCycle === "annual" ? plan.annualINR : plan.monthlyINR)
+                            : (billingCycle === "annual" ? plan.annualUSD : plan.monthlyUSD)
                         )}
                       </p>
                       {plan.includesTax && (
@@ -664,8 +650,11 @@ export default function PricingPage() {
                     <button
                       className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-colors duration-200 mt-auto ${
                         currentPlan &&
-                        currentPlan.planId === plan._id &&
-                        currentPlan.status === "active"
+                        ((currentPlan.planId === plan._id &&
+                          currentPlan.status === "active") ||
+                          (plan.isFree &&
+                            (!currentPlan.planId ||
+                              currentPlan.planId === "free")))
                           ? "bg-gray-400 cursor-not-allowed"
                           : plan.highlight
                           ? "bg-blue-500 hover:bg-blue-600"
@@ -675,15 +664,21 @@ export default function PricingPage() {
                       disabled={
                         loadingPlan === plan._id ||
                         (currentPlan &&
-                          currentPlan.planId === plan._id &&
-                          currentPlan.status === "active")
+                          ((currentPlan.planId === plan._id &&
+                            currentPlan.status === "active") ||
+                            (plan.isFree &&
+                              (!currentPlan.planId ||
+                                currentPlan.planId === "free"))))
                       }
                     >
                       {loadingPlan === plan._id
                         ? "Redirecting..."
                         : currentPlan &&
-                          currentPlan.planId === plan._id &&
-                          currentPlan.status === "active"
+                          ((currentPlan.planId === plan._id &&
+                            currentPlan.status === "active") ||
+                            (plan.isFree &&
+                              (!currentPlan.planId ||
+                                currentPlan.planId === "free")))
                         ? "Current Plan"
                         : plan.custom
                         ? "Contact Sales"
@@ -729,11 +724,13 @@ export default function PricingPage() {
                         className="p-4 bg-blue-500 text-white font-semibold text-center"
                       >
                         {plan.name}
-                        {currentPlan && currentPlan.planId === plan._id && (
-                          <div className="text-xs bg-green-500 text-white px-2 py-1 rounded-full mt-1 inline-block">
-                            Your Plan
-                          </div>
-                        )}
+                        {currentPlan &&
+                          (currentPlan.planId === plan._id ||
+                            (plan.isFree && currentPlan.planId === "free")) && (
+                            <div className="text-xs bg-green-500 text-white px-2 py-1 rounded-full mt-1 inline-block">
+                              Your Plan
+                            </div>
+                          )}
                       </div>
                     ))}
 

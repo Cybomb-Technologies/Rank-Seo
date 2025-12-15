@@ -88,10 +88,13 @@ const calculateAmountFromPlan = async ({ planId, billingCycle, currency, customA
     };
   }
 
-  const cycleKey = billingCycle === "annual" ? "annualUSD" : "monthlyUSD";
-  const basePrice = plan[cycleKey];
+  const cycleKeyUSD = billingCycle === "annual" ? "annualUSD" : "monthlyUSD";
+  const cycleKeyINR = billingCycle === "annual" ? "annualINR" : "monthlyINR";
+  
+  const basePriceUSD = plan[cycleKeyUSD];
+  const basePriceINR = plan[cycleKeyINR];
 
-  if (!basePrice) {
+  if (basePriceUSD === undefined && basePriceINR === undefined) {
     throw new Error("Invalid billing cycle for selected plan");
   }
 
@@ -100,10 +103,23 @@ const calculateAmountFromPlan = async ({ planId, billingCycle, currency, customA
 
   // ensure finalCurrency is string 'INR' or 'USD'
   if (currency === "INR") {
-    amount = Math.round(basePrice * EXCHANGE_RATE);
+    // Use explicit INR price if available, otherwise calculate from USD
+    if (basePriceINR !== undefined && basePriceINR !== null) {
+      amount = basePriceINR;
+    } else if (basePriceUSD !== undefined && basePriceUSD !== null) {
+      amount = Math.round(basePriceUSD * EXCHANGE_RATE);
+    } else {
+       throw new Error("Price not available for INR");
+    }
     finalCurrency = "INR";
   } else {
-    amount = basePrice;
+    // Default to USD
+    if (basePriceUSD !== undefined && basePriceUSD !== null) {
+      amount = basePriceUSD;
+    } else {
+       // Fallback to converting INR to USD (edge case, but good to have)
+       amount = Math.round(basePriceINR / EXCHANGE_RATE);
+    }
     finalCurrency = "USD";
   }
 
@@ -831,7 +847,7 @@ const getUserProfile = async (req, res) => {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    const user = await User.findById(userId).select('name email mobile planName billingCycle subscriptionStatus planExpiry maxAuditsPerMonth auditsUsed maxKeywordReportsPerMonth keywordReportsUsed maxBusinessNamesPerMonth businessNamesUsed maxKeywordChecksPerMonth keywordChecksUsed maxKeywordScrapesPerMonth keywordScrapesUsed createdAt');
+    const user = await User.findById(userId).select('name email mobile plan planName billingCycle subscriptionStatus planExpiry maxAuditsPerMonth auditsUsed maxKeywordReportsPerMonth keywordReportsUsed maxBusinessNamesPerMonth businessNamesUsed maxKeywordChecksPerMonth keywordChecksUsed maxKeywordScrapesPerMonth keywordScrapesUsed createdAt');
 
     if (!user) {
       return res.status(404).json({ 
@@ -851,6 +867,7 @@ const getUserProfile = async (req, res) => {
       name: user.name,
       email: user.email,
       mobile: user.phone,
+      planId: user.plan,
       planName: user.planName,
       billingCycle: user.billingCycle,
       subscriptionStatus: user.subscriptionStatus,
