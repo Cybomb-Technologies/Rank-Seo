@@ -65,6 +65,28 @@ const initialPlans = [
     maxTrackedKeywords: 0, // 0 means unlimited
     isActive: true,
     sortOrder: 3
+  },
+  {
+    name: "Free",
+    description: "Get started with basic SEO tools",
+    monthlyUSD: 0,
+    annualUSD: 0,
+    custom: false,
+    highlight: false,
+    features: [
+      { name: "5 SEO Audits per month", included: true },
+      { name: "10 Keyword Tracking", included: true },
+      { name: "Basic Technical SEO Analysis", included: true },
+      { name: "Competitor Analysis", included: false },
+      { name: "White-label Reports", included: false },
+      { name: "API Access", included: false },
+      { name: "Dedicated Support", included: false }
+    ],
+    maxAuditsPerMonth: 5,
+    maxTrackedKeywords: 10,
+    isActive: true,
+    sortOrder: 0,
+    isFree: true
   }
 ];
 

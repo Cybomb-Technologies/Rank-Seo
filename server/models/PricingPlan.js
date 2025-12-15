@@ -36,6 +36,16 @@ const pricingPlanSchema = new mongoose.Schema({
     min: 0,
     default: null
   },
+  monthlyINR: {
+    type: Number,
+    min: 0,
+    default: null
+  },
+  annualINR: {
+    type: Number,
+    min: 0,
+    default: null
+  },
   maxAuditsPerMonth: {
     type: Number,
     default: 0,

@@ -61,7 +61,9 @@ exports.createPricingPlan = async (req, res) => {
       maxKeywordScrapesPerMonth,
       sortOrder,
       isFree,
-      includesTax
+      includesTax,
+      monthlyINR,
+      annualINR
     } = req.body;
 
     // Validate required fields
@@ -72,10 +74,18 @@ exports.createPricingPlan = async (req, res) => {
       });
     }
 
-    if (!isFree && !custom && (monthlyUSD === undefined || annualUSD === undefined)) {
-      return res.status(400).json({
+    // Relaxed validation: need EITHER USD prices OR INR prices (or both).
+
+    // Default INR to calculated if not provided (optional, but let's keep it null-safe)
+    // Actually, let's just save what is provided. The validation above ensures at least something is there.
+    // However, the original validation was strict about USD.
+    // Let's relax it: need EITHER USD prices OR INR prices (or both).
+    if (!isFree && !custom && 
+        (monthlyUSD === undefined || annualUSD === undefined) && 
+        (monthlyINR === undefined || annualINR === undefined)) {
+       return res.status(400).json({
         success: false,
-        message: "Non-custom, non-free plans must have monthlyUSD and annualUSD"
+        message: "Non-custom, non-free plans must have pricing defined"
       });
     }
 
@@ -84,6 +94,8 @@ exports.createPricingPlan = async (req, res) => {
       description,
       monthlyUSD: isFree ? 0 : (custom ? undefined : monthlyUSD),
       annualUSD: isFree ? 0 : (custom ? undefined : annualUSD),
+      monthlyINR: isFree ? 0 : (custom ? undefined : monthlyINR),
+      annualINR: isFree ? 0 : (custom ? undefined : annualINR),
       custom: custom || false,
       highlight: highlight || false,
       features: features || [],
@@ -136,10 +148,15 @@ exports.updatePricingPlans = async (req, res) => {
         });
       }
 
-      if (!plan.isFree && !plan.custom && (plan.monthlyUSD === undefined || plan.annualUSD === undefined)) {
+      // Validating pricing existence requires checking both USD and INR options
+
+
+      if (!plan.isFree && !plan.custom && 
+          (plan.monthlyUSD === undefined || plan.annualUSD === undefined) &&
+          (plan.monthlyINR === undefined || plan.annualINR === undefined)) {
         return res.status(400).json({
           success: false,
-          message: "Non-custom, non-free plans must have monthlyUSD and annualUSD"
+          message: "Non-custom, non-free plans must have pricing defined"
         });
       }
 
@@ -148,6 +165,8 @@ exports.updatePricingPlans = async (req, res) => {
         description: plan.description,
         monthlyUSD: plan.isFree ? 0 : (plan.custom ? undefined : plan.monthlyUSD),
         annualUSD: plan.isFree ? 0 : (plan.custom ? undefined : plan.annualUSD),
+        monthlyINR: plan.isFree ? 0 : (plan.custom ? undefined : plan.monthlyINR),
+        annualINR: plan.isFree ? 0 : (plan.custom ? undefined : plan.annualINR),
         custom: plan.custom || false,
         highlight: plan.highlight || false,
         features: plan.features || [],

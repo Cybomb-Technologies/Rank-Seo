@@ -51,6 +51,8 @@ exports.createPricingPlan = async (req, res) => {
       description,
       monthlyUSD,
       annualUSD,
+      monthlyINR,
+      annualINR,
       custom,
       highlight,
       features,
@@ -72,10 +74,13 @@ exports.createPricingPlan = async (req, res) => {
       });
     }
 
-    if (!isFree && !custom && (monthlyUSD === undefined || annualUSD === undefined)) {
+    const hasUSD = monthlyUSD !== undefined && annualUSD !== undefined;
+    const hasINR = monthlyINR !== undefined && annualINR !== undefined;
+
+    if (!isFree && !custom && !hasUSD && !hasINR) {
       return res.status(400).json({
         success: false,
-        message: "Non-custom, non-free plans must have monthlyUSD and annualUSD"
+        message: "Non-custom, non-free plans must have either USD (monthlyUSD/annualUSD) or INR (monthlyINR/annualINR) pricing"
       });
     }
 
@@ -84,6 +89,8 @@ exports.createPricingPlan = async (req, res) => {
       description,
       monthlyUSD: isFree ? 0 : (custom ? undefined : monthlyUSD),
       annualUSD: isFree ? 0 : (custom ? undefined : annualUSD),
+      monthlyINR: isFree ? 0 : (custom ? undefined : monthlyINR),
+      annualINR: isFree ? 0 : (custom ? undefined : annualINR),
       custom: custom || false,
       highlight: highlight || false,
       features: features || [],
@@ -136,10 +143,13 @@ exports.updatePricingPlans = async (req, res) => {
         });
       }
 
-      if (!plan.isFree && !plan.custom && (plan.monthlyUSD === undefined || plan.annualUSD === undefined)) {
+      const hasUSD = plan.monthlyUSD !== undefined && plan.annualUSD !== undefined;
+      const hasINR = plan.monthlyINR !== undefined && plan.annualINR !== undefined;
+
+      if (!plan.isFree && !plan.custom && !hasUSD && !hasINR) {
         return res.status(400).json({
           success: false,
-          message: "Non-custom, non-free plans must have monthlyUSD and annualUSD"
+          message: "Non-custom, non-free plans must have either USD (monthlyUSD/annualUSD) or INR (monthlyINR/annualINR) pricing"
         });
       }
 
@@ -148,6 +158,8 @@ exports.updatePricingPlans = async (req, res) => {
         description: plan.description,
         monthlyUSD: plan.isFree ? 0 : (plan.custom ? undefined : plan.monthlyUSD),
         annualUSD: plan.isFree ? 0 : (plan.custom ? undefined : plan.annualUSD),
+        monthlyINR: plan.isFree ? 0 : (plan.custom ? undefined : plan.monthlyINR),
+        annualINR: plan.isFree ? 0 : (plan.custom ? undefined : plan.annualINR),
         custom: plan.custom || false,
         highlight: plan.highlight || false,
         features: plan.features || [],
