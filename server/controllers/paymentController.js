@@ -870,7 +870,7 @@ const getUserProfile = async (req, res) => {
       planId: user.plan,
       planName: user.planName,
       billingCycle: user.billingCycle,
-      subscriptionStatus: user.subscriptionStatus,
+      subscriptionStatus: (user.planName === "Free Tier" || user.plan === "free") ? "active" : user.subscriptionStatus,
       planExpiry: user.planExpiry,
       maxAuditsPerMonth: user.maxAuditsPerMonth || 0,
       auditsUsed: user.auditsUsed || 0,

@@ -558,8 +558,8 @@ const PDFGenerator: React.FC<PDFProps> = ({ report, url }) => {
       onClick={handleDownloadPDF}
       className="px-4 sm:px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2 text-sm sm:text-base shadow-lg"
     >
-      <DownloadIcon />
-      Download PDF Report
+     <DownloadIcon />
+      Download Report
     </button>
   );
 };
