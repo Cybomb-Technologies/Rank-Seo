@@ -63,6 +63,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import Metatags from "../../../SEO/metatags";
+import PDFGenerator from "../../audit/pdf";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -133,6 +134,26 @@ export default function ReportsPage() {
   const [detailedKeywords, setDetailedKeywords] = useState<any[]>([]);
   const [detailedKeywordAnalysis, setDetailedKeywordAnalysis] =
     useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      try {
+        const response = await fetch(`${API_URL}/api/payments/user/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const userData = await response.json();
+          setUserProfile(userData);
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      }
+    };
+    fetchUserProfile();
+  }, []);
 
   // Pagination states for all services
   const [currentPage, setCurrentPage] = useState(1);
@@ -855,15 +876,44 @@ export default function ReportsPage() {
               )}
             </TableCell>
             <TableCell className="text-center py-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleViewReport(report)}
-                className="h-8 px-2 text-xs"
-              >
-                <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="sr-only xs:not-sr-only xs:ml-1">View</span>
-              </Button>
+              <div className="flex items-center gap-1 justify-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleViewReport(report)}
+                  className="h-8 px-2 text-xs"
+                >
+                  <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span className="sr-only xs:not-sr-only xs:ml-1">View</span>
+                </Button>
+                {userProfile && !userProfile.planName?.toLowerCase().includes("free") ? (
+                  <PDFGenerator
+                    report={{
+                      seo: report.seoScore,
+                      performance: report.speedScore,
+                      accessibility: report.accessibilityScore,
+                      bestPractices: report.bestPracticesScore,
+                      analysis: report.analysis,
+                      recommendations: report.recommendations,
+                      loadingTime: 0,
+                      pageSize: 0,
+                      requests: 0,
+                    }}
+                    url={report.website}
+                    variant="icon"
+                  />
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 text-xs text-muted-foreground opacity-50 cursor-not-allowed"
+                    title="Upgrade to download"
+                    disabled
+                  >
+                    <Download className="w-3 h-3 sm:w-4 sm:h-4" />
+                  </Button>
+                )}
+              </div>
             </TableCell>
           </TableRow>
         );

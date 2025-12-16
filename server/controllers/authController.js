@@ -280,9 +280,16 @@ const resetPassword = async (req, res) => {
 // Get User Profile
 const getProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id)
+        let user = await User.findById(req.user.id)
             .select('-password -otp -otpExpiresAt')
             .populate('plan', 'name price features');
+
+        // Ensure free plan users are active
+        if (user && (user.planName === 'Free' || !user.plan) && user.subscriptionStatus !== 'active') {
+            user.subscriptionStatus = 'active';
+            await user.save();
+        }
+
         res.json(user);
     } catch (err) {
         console.error('Get profile error:', err.message);
