@@ -2,121 +2,127 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://rankseo.in/</loc>
-    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
+    <lastmod>2025-12-19T06:00:00+00:00</lastmod>
     <priority>1.0</priority>
   </url>
 
   <url>
     <loc>https://rankseo.in/about-us</loc>
     <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.9</priority>
+    <priority>0.7</priority>
   </url>
 
   <url>
     <loc>https://rankseo.in/contact-us</loc>
     <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.9</priority>
-  </url>
-
-  <url>
-    <loc>https://rankseo.in/pricing</loc>
-    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://rankseo.in/audit</loc>
-    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.8</priority>
-  </url>
-
-  <url>
-    <loc>https://rankseo.in/our-mission</loc>
-    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
     <priority>0.7</priority>
   </url>
 
   <url>
+    <loc>https://rankseo.in/pricing</loc>
+    <lastmod>2025-12-19T06:00:00+00:00</lastmod>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>https://rankseo.in/audit</loc>
+    <lastmod>2025-12-19T06:00:00+00:00</lastmod>
+    <priority>0.2</priority>
+  </url>
+
+  <url>
     <loc>https://rankseo.in/privacy-policy</loc>
-    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.6</priority>
+    <lastmod>2025-12-19T06:00:00+00:00</lastmod>
+    <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://rankseo.in/terms-and-conditions</loc>
     <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://rankseo.in/refund-policy</loc>
-    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.6</priority>
+    <lastmod>2025-12-19T06:00:00+00:00</lastmod>
+    <priority>0.8</priority>
   </url>
 
     <url>
     <loc>https://rankseo.in/keyword-generator</loc>
-    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.1</priority>
+    <lastmod>2025-12-19T06:00:00+00:00</lastmod>
+    <priority>0.3</priority>
   </url>
 
     <url>
     <loc>https://rankseo.in/scraper</loc>
-    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.1</priority>
+    <lastmod>2025-12-19T06:00:00+00:00</lastmod>
+    <priority>0.3</priority>
   </url>
 
   <url>
     <loc>https://rankseo.in/business-name-generator</loc>
-    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.1</priority>
+    <lastmod>2025-12-19T06:00:00+00:00</lastmod>
+    <priority>0.3</priority>
   </url>
 
     <url>
     <loc>https://rankseo.in/keywordchecker</loc>
     <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.1</priority>
+    <priority>0.3</priority>
   </url>
 
     <url>
     <loc>https://rankseo.in/profile/support</loc>
     <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.1</priority>
+    <priority>0.6</priority>
   </url>
 
     <url>
     <loc>https://rankseo.in/profile</loc>
     <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.1</priority>
+    <priority>0.6</priority>
   </url>
 
     <url>
     <loc>https://rankseo.in/profile/reports</loc>
     <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.1</priority>
+    <priority>0.7</priority>
   </url>
 
     <url>
     <loc>https://rankseo.in/profile/dashboard</loc>
     <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.1</priority>
+    <priority>0.7</priority>
   </url>
 
     <url>
     <loc>https://rankseo.in/login</loc>
-    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.1</priority>
+    <lastmod>2025-12-19T06:00:00+00:00</lastmod>
+    <priority>0.8</priority>
   </url>
 
     <url>
     <loc>https://rankseo.in/signup</loc>
-    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.1</priority>
+    <lastmod>2025-12-19T06:00:00+00:00</lastmod>
+    <priority>0.8</priority>
   </url>
 
     <url>
     <loc>https://rankseo.in/profile/billing</loc>
     <lastmod>2025-11-11T06:00:00+00:00</lastmod>
-    <priority>0.1</priority>
+    <priority>0.6</priority>
+  </url>
+
+    <url>
+    <loc>https://rankseo.in/pricing-policy</loc>
+    <lastmod>2025-12-19T06:00:00+00:00</lastmod>
+    <priority>0.7</priority>
+  </url>
+
+      <url>
+    <loc>https://rankseo.in/forgotpassword</loc>
+    <lastmod>2025-11-11T06:00:00+00:00</lastmod>
+    <priority>0.7</priority>
   </url>
 </urlset>

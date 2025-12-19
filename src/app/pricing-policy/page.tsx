@@ -2,11 +2,11 @@
 import Metatags from "../../SEO/metatags";
 export default function PricingPolicyPage() {
   const metaPropsData = {
-    title: "Pricing Policy | SEO Audit Subscription Terms & Billing",
+    title: "Pricing Policy | Rank SEO Audit Subscription Terms & Billing",
     description:
-      "Learn about our pricing structure, billing cycles, refund policy, and subscription terms for RANK SEO audit services. Clear pricing with 14-day money-back guarantee.",
+      "Learn about Rank SEO pricing structure, billing cycles, refund policy, and subscription terms. Clear transparent pricing with flexible cancellation options.",
     keyword:
-      "SEO audit pricing policy, subscription terms, billing policy, refund policy, SEO tool pricing",
+      "seo audit pricing policy, subscription terms, billing policy, transparent pricing policy, seo tool pricing",
     url: "https://rankseo.in/pricing-policy",
     image: "https://rankseo.in/SEO_LOGO.png",
   };

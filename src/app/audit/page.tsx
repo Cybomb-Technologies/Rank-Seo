@@ -280,10 +280,9 @@ export default function AuditPage() {
   };
 
   const metaPropsData = {
-    title:
-      "Free SEO Audit & Checker - Comprehensive Page Audit for SEO Ranking",
+    title: "Free SEO Audit & Checker Tool - Page Audit for SEO Ranking",
     description:
-      "Use our free SEO audit and checker tool to perform a detailed page audit. This free SEO checker helps improve your SEO optimization service with actionable insights for better SEO ranking.",
+      "Use our free SEO audit and checker tool for detailed page audits. This SEO checker helps improve your optimization with actionable insights for better ranking.",
     keyword:
       "seo optimization service, page audit, free seo audit, free seo checker, seo ranking checker",
     url: "https://rankseo.in/audit",
@@ -425,7 +424,9 @@ export default function AuditPage() {
                     </p>
                   </div>
                   <div className="flex gap-2 sm:gap-3">
-                    {isLoggedIn && userProfile && !userProfile.planName.toLowerCase().includes("free") ? (
+                    {isLoggedIn &&
+                    userProfile &&
+                    !userProfile.planName.toLowerCase().includes("free") ? (
                       <PDFGenerator report={report} url={url} />
                     ) : (
                       <button

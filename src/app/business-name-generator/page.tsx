@@ -181,9 +181,9 @@ export default function BusinessNameGeneratorPage() {
   ];
 
   const metaPropsData = {
-    title: "Business Name Generator - Creative Company & Brand Ideas",
+    title: "Business Name Generator - Creative Company & Brand Name Ideas",
     description:
-      "Generate unique business and brand names instantly with our AI-powered name generator. Get creative company names, taglines, and branding ideas for your startup or business venture.",
+      "Generate unique business and brand names instantly with AI-powered name generator. Get creative company names, taglines, and branding ideas for your startups.",
     keyword:
       "company naming ideas, business name generator, brand name generator, business name builder, business name ideas",
     url: "https://rankseo.in/business-name-generator",
