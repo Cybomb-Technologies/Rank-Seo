@@ -14,9 +14,9 @@ import Metatags from "../../SEO/metatags";
 
 const LoginPage = () => {
   const metaPropsData = {
-    title: "Login to RANK SEO - Access Your SEO Dashboard & Analytics",
+    title: "Rank SEO Login | Access Your SEO Dashboard & Analytics",
     description:
-      "Sign in to your RANK SEO account to access comprehensive SEO audits, performance analytics, and website optimization tools. Manage your SEO campaigns effectively.",
+      "Sign in to your Rank SEO account to access SEO audits, performance analytics, and website optimization tools. Manage your SEO campaigns more effectively now.",
     keyword:
       "rank seo login, seo tool login, access seo dashboard, website analytics login, seo audit tool, seo management",
     url: "https://rankseo.in/login",

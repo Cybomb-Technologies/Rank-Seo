@@ -11,9 +11,9 @@ import Metatags from "../../SEO/metatags";
 
 const SignupPage = () => {
   const metaPropsData = {
-    title: "Sign Up for RANK SEO - Create Your SEO Analytics Account",
+    title: "Rank SEO Sign Up - Create Your SEO Analytics Account Now",
     description:
-      "Join RANK SEO and create your account to access powerful SEO audit tools, website performance analytics, and comprehensive digital marketing insights for optimizing your online presence.",
+      "Join Rank SEO and create a free account today to access powerful SEO audit tools, website performance analytics, and comprehensive digital marketing insights.",
     keyword:
       "free seo tools signup, seo analytics platform, website audit tool, rank seo registration, seo dashboard access",
     url: "https://rankseo.in/signup",

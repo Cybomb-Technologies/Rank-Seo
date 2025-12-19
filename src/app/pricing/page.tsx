@@ -83,7 +83,9 @@ export default function PricingPage() {
   const [currentPlan, setCurrentPlan] = useState<UserSubscription | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
-  const exchangeRate = process.env.NEXT_PUBLIC_EXCHANGE_RATE ? Number(process.env.NEXT_PUBLIC_EXCHANGE_RATE) : 83.4;
+  const exchangeRate = process.env.NEXT_PUBLIC_EXCHANGE_RATE
+    ? Number(process.env.NEXT_PUBLIC_EXCHANGE_RATE)
+    : 83.4;
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
   useEffect(() => {
@@ -184,20 +186,20 @@ export default function PricingPage() {
           billingCycle === "annual" ? "/year" : "/month"
         }`;
       }
-      
+
       // Fallback to exchange rate calculation only if usdPrice is available
       if (usdPrice !== undefined) {
-         const calculatedInr = Math.round(usdPrice * exchangeRate);
-         return `₹${calculatedInr.toLocaleString("en-IN")}${
+        const calculatedInr = Math.round(usdPrice * exchangeRate);
+        return `₹${calculatedInr.toLocaleString("en-IN")}${
           billingCycle === "annual" ? "/year" : "/month"
         }`;
       }
-      
+
       return "Custom";
     }
-    
+
     // USD Case
-    return usdPrice !== undefined 
+    return usdPrice !== undefined
       ? `$${usdPrice}${billingCycle === "annual" ? "/year" : "/month"}`
       : "Custom";
   };
@@ -428,9 +430,9 @@ export default function PricingPage() {
   ];
 
   const metaPropsData = {
-    title: "Rank SEO Pricing & packages | Affordable  & premium plans for SEO",
+    title: "Rank SEO Pricing & Packages | Affordable SEO Plans & Pricing",
     description:
-      "Explore our SEO plans with transparent SEO audit pricing. Our SEO pricing packages are designed to offer SEO for businesses of all sizes.",
+      "Explore Rank SEO pricing plans with transparent audit pricing. Our SEO packages are designed for businesses of all sizes with affordable premium plan options.",
     keyword:
       "seo pricing packages, seo costing, seo audit pricing, seo plans and pricing, low cost seo plans",
     url: "https://rankseo.in/pricing",
@@ -471,8 +473,6 @@ export default function PricingPage() {
             <p className="text-xl text-gray-600 mb-8">
               Choose the plan that works best for your business needs
             </p>
-
-
 
             {error && (
               <div
@@ -582,7 +582,6 @@ export default function PricingPage() {
                           Most Popular
                         </div>
                       )}
-
                     </div>
 
                     <div className="text-center mb-4">
@@ -591,16 +590,24 @@ export default function PricingPage() {
                       </h3>
                       <div className="text-2xl font-bold text-gray-900 mb-2">
                         {formatPrice(
-                          billingCycle === "annual" ? plan.annualUSD : plan.monthlyUSD,
-                          billingCycle === "annual" ? plan.annualINR : plan.monthlyINR,
+                          billingCycle === "annual"
+                            ? plan.annualUSD
+                            : plan.monthlyUSD,
+                          billingCycle === "annual"
+                            ? plan.annualINR
+                            : plan.monthlyINR,
                           plan.custom
                         )}
                       </div>
                       <p className="text-gray-600 text-xs mb-2">
                         {formatPriceDescription(
-                          currency === "INR" 
-                            ? (billingCycle === "annual" ? plan.annualINR : plan.monthlyINR)
-                            : (billingCycle === "annual" ? plan.annualUSD : plan.monthlyUSD)
+                          currency === "INR"
+                            ? billingCycle === "annual"
+                              ? plan.annualINR
+                              : plan.monthlyINR
+                            : billingCycle === "annual"
+                            ? plan.annualUSD
+                            : plan.monthlyUSD
                         )}
                       </p>
                       {plan.includesTax && (

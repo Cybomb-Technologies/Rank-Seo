@@ -54,13 +54,12 @@ export default function LandingPage() {
   }, []);
 
   const metaPropsData = {
-    title:
-      "Free SEO Audit Tool - Website SEO Checker with Site Rank & Audit Reports",
+    title: "Free SEO Audit Tool - Website SEO Checker & Site Rank Reports",
     description:
-      "Use our free SEO audit tools to analyze your website. Generate a detailed SEO audit report, check your SEO score, and monitor your site rank with actionable insights.",
+      "Analyze your website performance with free SEO audit tools. Get detailed SEO audit reports, check SEO scores, and monitor site rank with actionable insights.",
     keyword:
       "free seo audit tool, seo score checker, free website seo checker, seo audit report, site rank checker, keyword rank checker",
-    url: "https://rankseo.in",
+    url: "https://rankseo.in/",
     image: "https://rankseo.in/SEO_LOGO.png",
   };
 

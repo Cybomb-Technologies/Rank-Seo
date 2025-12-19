@@ -440,9 +440,9 @@ export default function ScraperPage() {
   const isDisabled = loading || !url || hasReachedLimit;
 
   const metaPropsData = {
-    title: "SEO Keyword Extractor Tool - Free Keyword Analysis",
+    title: "SEO Keyword Extractor Tool - Free Keyword Analysis Tool",
     description:
-      "Extract keywords from any URL with our free SEO keyword extractor tool. Analyze keyword volume, discover primary & secondary terms, and get comprehensive SEO keyword analysis for better content strategy.",
+      "Extract keywords from URLs with free SEO keyword extractor tool. Analyze keyword volume, discover terms and get comprehensive SEO analysis for content strategy.",
     keyword:
       "seo keyword extractor, keyword extraction tool, free keyword analyzer, keyword volume checker, url keyword scanner",
     url: "https://rankseo.in/scraper",

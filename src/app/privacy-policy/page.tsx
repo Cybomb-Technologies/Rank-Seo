@@ -3,11 +3,11 @@ import Metatags from "../../SEO/metatags";
 
 export default function PrivacyPolicyPage() {
   const metaPropsData = {
-    title: "Privacy Policy for Rank SEO - Data Protection and Security",
+    title: "Privacy Policy | Rank SEO Tool Data Protection & Security",
     description:
-      "Our Privacy Policy details the data protection, security, and data collection practices for our Rank SEO tools, ensuring your information is safe.",
+      "Read our Privacy Policy detailing data protection, security, and collection practices for Rank SEO tools to keep your information safe and secure at all times.",
     keyword:
-      "SEO audit privacy policy, data protection, privacy policy, SEO tool security, data collection",
+      "seo audit privacy policy, data protection, privacy policy, seo tool security, data collection",
     url: "https://rankseo.in/privacy-policy",
     image: "https://rankseo.in/SEO_LOGO.png",
   };
