@@ -436,9 +436,9 @@ export default function DashboardPage() {
   };
 
   const metaPropsData = {
-    title: "Rank SEO Dashboard - Performance Analysis & Website Audit Reports",
+    title: "Rank SEO Dashboard - Performance Analysis & Audit Reports",
     description:
-      "Monitor your website's SEO performance with detailed analytics, track key metrics, and access comprehensive audit reports from your central dashboard.",
+      "Monitor your website SEO performance with detailed analytics, track key metrics, and access comprehensive audit reports from within your Rank SEO dashboard.",
     keyword:
       "seo dashboard, performance analytics, audit reports, seo metrics, website performance",
     url: "https://rankseo.in/profile/dashboard",

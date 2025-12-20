@@ -43,11 +43,11 @@ export default function ContactUsPage() {
   };
 
   const metaPropsData = {
-    title: "Contact RANK SEO | Get Help with SEO Audits & Website Optimization",
+    title: "Contact Rank SEO | Get Help with SEO Audits & Optimization",
     description:
-      "Have questions about our SEO audit tool? Contact our team for support, partnership inquiries, or help with your website optimization needs.",
+      "Contact Rank SEO team for support, partnerships or help with SEO audits and website optimization. Get expert assistance with our powerful SEO tools & services.",
     keyword:
-      "contact SEO experts, SEO support, website audit help, SEO tool contact, Rank SEO support",
+      "contact seo experts, seo support, website audit help, seo tool contact, rank seo support",
     url: "https://rankseo.in/contact-us",
     image: "https://rankseo.in/SEO_LOGO.png",
   };

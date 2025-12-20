@@ -118,9 +118,9 @@ export default function BillingPage() {
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const metaPropsData = {
-    title: "Billing & Subscription - Manage Your SEO Plan & Payments",
+    title: "Rank SEO Billing & Subscription - Manage Plan & Payments",
     description:
-      "View your current SEO plan, monitor usage statistics, access billing history, and manage your subscription preferences and payment methods.",
+      "View your Rank SEO plan details, monitor usage statistics, access your billing history, and manage your subscription preferences and payment methods all easily.",
     keyword:
       "seo billing, subscription management, plan usage, billing history, seo tool pricing",
     url: "https://rankseo.in/profile/billing",
