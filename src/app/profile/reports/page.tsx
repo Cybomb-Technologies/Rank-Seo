@@ -886,7 +886,8 @@ export default function ReportsPage() {
                   <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="sr-only xs:not-sr-only xs:ml-1">View</span>
                 </Button>
-                {userProfile && !userProfile.planName?.toLowerCase().includes("free") ? (
+                {userProfile &&
+                !userProfile.planName?.toLowerCase().includes("free") ? (
                   <PDFGenerator
                     report={{
                       seo: report.seoScore,
@@ -2443,9 +2444,9 @@ export default function ReportsPage() {
   );
 
   const metaPropsData = {
-    title: "SEO Audit Reports - Website Analysis & Performance Dashboard",
+    title: "Rank SEO Audit Reports | Website Analysis & Audit Dashboard",
     description:
-      "Access comprehensive SEO audit reports with detailed website analysis, performance scores, and actionable recommendations to improve your search rankings.",
+      "Access comprehensive Rank SEO audit reports with detailed website analysis, performance scores, and actionable recommendations to improve your search rankings.",
     keyword:
       "seo audit reports, website audit report, seo score tracker, seo performance dashboard, website analysis report, audit history",
     url: "https://rankseo.in/profile/reports",

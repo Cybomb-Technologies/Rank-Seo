@@ -3,11 +3,11 @@ import Metatags from "../../SEO/metatags";
 
 export default function TermsOfServicePage() {
   const metaPropsData = {
-    title: "Terms & Conditions - Rank SEO Agreement & Usage Terms",
+    title: "Terms & Conditions | Rank SEO Platform Agreement & Terms",
     description:
-      "Review our Terms and conditions for the Rank SEO. This service agreement outlines the usage terms and legal agreement for our platform.",
+      "Review Terms and Conditions for Rank SEO platform. This service agreement outlines usage terms and legal agreement details for our SEO tool services provided.",
     keyword:
-      "SEO audit terms of service, terms and conditions, SEO tool agreement, usage terms, service agreement",
+      "seo audit terms of service, terms and conditions, seo tool agreement, usage terms, service agreement",
     url: "https://rankseo.in/terms-and-conditions",
     image: "https://rankseo.in/SEO_LOGO.png",
   };

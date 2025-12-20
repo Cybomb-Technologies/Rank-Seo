@@ -315,9 +315,9 @@ export default function KeywordGeneratorPage() {
   };
 
   const metaPropsData = {
-    title: "Free Keyword Generate Tool - Analyse your keywords for SEO",
+    title: "Free Keyword Generator - Analyze Keywords for SEO Ranking",
     description:
-      "Use our free keyword research tool for SEO. Get comprehensive keyword planner and analysis features with search volumes and difficulty scores to find high-converting keywords.",
+      "Use our free keyword research tool for SEO analysis. Get comprehensive keyword planner with search volumes & difficulty scores to find high-converting keywords.",
     keyword:
       "free keyword research tool, keyword planner tool, keyword analysis tool, keyword research for seo, keyword search volumes",
     url: "https://rankseo.in/keyword-generator",

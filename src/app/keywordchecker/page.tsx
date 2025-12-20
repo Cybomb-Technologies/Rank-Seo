@@ -409,9 +409,9 @@ export default function KeywordAnalyzer() {
   };
 
   const metaPropsData = {
-    title: "SEO Keyword Research Tool - Advanced SEO Keyword Analysis",
+    title: "Rank SEO Keyword Research Tool - Advanced Keyword Analysis",
     description:
-      "Perform comprehensive keyword analysis with AI-powered insights. Get search volume data, difficulty scores, intent analysis, and optimization recommendations for better SEO results.",
+      "Perform comprehensive keyword analysis with AI-powered insights. Get search volume data, difficulty scores, and optimization recommendations for better SEO.",
     keyword:
       "free keyword research tool, free keyword analysis tool, keyword planner free, seo keyword analysis, keyword search volumes, seo and keyword search",
     url: "https://rankseo.in/keywordchecker",

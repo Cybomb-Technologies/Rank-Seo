@@ -16,9 +16,9 @@ import {
 import Metatags from "../../../SEO/metatags";
 
 const metaPropsData = {
-  title: "Support Center - SEO Tool Help & Customer Assistance",
+  title: "Rank SEO Support Center - SEO Tool Help & Customer Assistance",
   description:
-    "Get expert help with RANK SEO tools, access our knowledge base, contact our support team, and find troubleshooting guides for SEO audit and analysis tools.",
+    "Get expert help with Rank SEO tools, access the knowledge base, contact our support team, and find troubleshooting guides for SEO audit and analysis tools.",
   keyword:
     "seo tool support, customer help, technical support, troubleshooting guides, contact support",
   url: "https://rankseo.in/profile/support",

@@ -7,11 +7,11 @@ import Metatags from "../../SEO/metatags";
 
 const AboutPage = () => {
   const metaPropsData = {
-    title: "About RANK SEO - AI SEO Tool for SEO Audit & Website Optimization",
+    title: "About Rank SEO - AI SEO Tool for SEO Audit & Optimization",
     description:
-      "Learn about RANK SEO, your AI SEO tool for comprehensive SEO audit and website optimization. We provide performance monitoring, bug detection, and competitive analysis similar to current top tools.",
+      "Learn about Rank SEO AI tool for SEO audit and website optimization. Get performance monitoring, bug detection, and competitive analysis like top SEO tools.",
     keyword:
-      "RANK SEO, AI SEO Tool, SEO Audit, Website Optimization, Performance Monitoring, Bug Detection, Lighthouse SEO, Ahrefs, Moz",
+      "rank seo, ai seo tool, seo audit, website optimization, performance monitoring, bug detection",
     url: "https://rankseo.in/about-us",
     image: "https://rankseo.in/SEO_LOGO.png",
   };
